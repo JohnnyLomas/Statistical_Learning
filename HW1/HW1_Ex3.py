@@ -1,10 +1,13 @@
 import numpy as np
 
-def trainNormalEquation(x: np.matrix, y: np.matrix) -> np.array:
-	theta = np.linalg.inv(x.T.dot(x)).dot(x.T).dot(y)
-	return (theta)
+def trainNormalEquation(x: np.matrix, y: np.array) -> np.array:
+	beta = np.linalg.inv(x.T.dot(x)).dot(x.T).dot(y)
+	return (beta)
 
-#def classifyLinReg():
+def classifyLinReg(beta, x):
+	y = x.dot(beta)
+	y = (y > 0.5).astype(int)
+	return(y)
 
 #def distance(d1: np.array, d2: np.array) -> int:
 	# TODO: calculate distance in 256 
@@ -12,7 +15,7 @@ def trainNormalEquation(x: np.matrix, y: np.matrix) -> np.array:
 #def classifyKNN(k: int, new_data: np.matrix, data: np.matrix) -> int:
 	#TODO
 
-def importData(file: str, addOnes: bool) -> np.matrix | np.array:
+def importData(file: str, addOnes: bool):
 	# Import data to a matrix
 	matrix = np.loadtxt(file)
 	
@@ -32,10 +35,20 @@ def importData(file: str, addOnes: bool) -> np.matrix | np.array:
 	
 	return(x_mat, y_vec)
 
-#def computeError():
+def computeError(truth, prediction):
+	return(1 - sum(truth == prediction)/len(truth))
 
+x, y = importData('zip.train', True)
+beta = trainNormalEquation(x, y)
+classified = classifyLinReg(beta, x)
+error = computeError(y, classified)
+print(f"\nLinear regression error (training set): {error}")
 
-x, y = importData('zip.test', False)
+x, y = importData('zip.test', True)
+classified = classifyLinReg(beta, x)
+error = computeError(y, classified)
+print(f"Linear regression error (test sest): {error}")
+
 # Import training data
 # Train linear regression
 # Classify training set by linear regression -> compute error
