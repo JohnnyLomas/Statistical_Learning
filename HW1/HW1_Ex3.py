@@ -1,16 +1,18 @@
 import numpy as np
 
-def calcNormalEquation(x: np.matrix, y: np.matrix) -> np.array:
+def trainNormalEquation(x: np.matrix, y: np.matrix) -> np.array:
 	theta = np.linalg.inv(x.T.dot(x)).dot(x.T).dot(y)
 	return (theta)
+
+#def classifyLinReg():
 
 #def distance(d1: np.array, d2: np.array) -> int:
 	# TODO: calculate distance in 256 
 
-#def calcKNN():
+#def classifyKNN(k: int, new_data: np.matrix, data: np.matrix) -> int:
 	#TODO
 
-def importData(file: str) -> np.matrix:
+def importData(file: str, addOnes: bool) -> np.matrix | np.array:
 	# Import data to a matrix
 	matrix = np.loadtxt(file)
 	
@@ -19,16 +21,21 @@ def importData(file: str) -> np.matrix:
 	matrix = matrix[mask]
 	
 	# code 2 -> 0, 3 -> 1
-	code = matrix[:, 0] == 3
-	code = code.astype(int)
-	matrix[:, 0] = code
+	y_vec = matrix[:, 0] == 3
+	y_vec = y_vec.astype(int)
 
-	return(matrix)
+	if addOnes:
+		matrix[:, 0] = np.ones(len(matrix))
+		x_mat = matrix[:, 0:256]
+	else:
+		x_mat = matrix[:, 1:256]
+	
+	return(x_mat, y_vec)
 
 #def computeError():
 
 
-mat = importData('zip.test')
+x, y = importData('zip.test', False)
 # Import training data
 # Train linear regression
 # Classify training set by linear regression -> compute error
