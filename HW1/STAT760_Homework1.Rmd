@@ -15,7 +15,7 @@ except a one in the kth position. Show that classifying to the largest element o
 ## Solution:
 Need to show $\underset{k}{argmin}||t_k-\hat{y}||=\underset{k}{argmax}(y_k)$:
 $$\begin{aligned}
-\underset{k}{argmin}||t_k-\hat{y}|| &= \underset{k}{argmin}||t_k-\hat{y}||^2 \ \ \ \ \ \ \ \  \text{a norm is always postitive and }x \to x^2 \ is  \ monotonic , \\
+\underset{k}{argmin}||t_k-\hat{y}|| &= \underset{k}{argmin}||t_k-\hat{y}||^2 \ \ \ \ \ \ \ \  \text{by symmetry of the norm and because }x \to x^2 \ is  \ monotonic , \\
 &= \underset{k}{argmin} \sqrt{\sum_{i=1}^{k}{(y_i-(t_k)_i)^2}} \ \ \ \ \ \ \ \text{by the definition of norm} ,\\
 &= \underset{k}{argmin} \sum_{i=1}^{k}{(y_i-(t_k)_i)^2} \ \ \ \ \ \ \ \text{argmin will be equivalent}, \sqrt{} \text{can be ignored}, \\
 &= \underset{k}{argmin} \sum_{i=1}^{k}{(y_i^2-2y_i(t_k)_i)+(t_k)_i^2)} \ \ \ \ \ \ \ \text{distibution} \\
@@ -31,39 +31,68 @@ Consider N data points uniformly distributed in a p-dimensional unit ball center
 $$d(p, N ) = {(1 − \frac{1}{2}^{\frac{1}{N}})}^{\frac{1}{p}}$$.
 Derive equation (1).,
 
-#Solution:
+## Solution:
+
+Let $X$ be a random variable representing the $N$ data points such that 
+
+$$ \begin{aligned}
+X = \underset{i \in {1,2,...,N}}{min}||x_i||
+\end{aligned}
+$$
+so that the $x_i$ are uniformly distributed in a p-dimensional unit ball centered at the origin and $||.||$ represents the Euclidean norm. 
 
 Let $m$ be the median distance from the origin to the closest data point. Therefore, 
 $$ \begin{aligned}
 P(\text{All N points are further than m from the origin})=\frac{1}{2}
-\end{aligned}
+\end{aligned} \\
+P(X \geq m) = \frac{1}{2}
 $$
-by the definition of the median. The points $X_i$ are indepenednelt distibuted, so
+by the definition of the median. The points $x_i$ are independent distibuted over the ball, so
 
 $$ \begin{aligned}
-\prod_{i=1}^{N}P(||x_i|| > m)
+P(X \geq m) = \prod_{i=1}^{N}P(||x_i|| > m) = \frac{1}{2}
 \end{aligned}
 $$
 Because the points $x_i$ are uniformly distributed in the unit ball, 
 
 $$ \begin{aligned}
-\prod_{i=1}^{N}P(||x_i|| > m) &= 1 - P(||x_i|| \leq m) \\
-&= 1-\frac{Km^p}{K} \\
+P(X \geq m) &= 1 - P(X < m) \\
+\end{aligned}
+$$
+Because the points are uniformly distributed over the unit ball in p-dimensions, 
+
+$$\begin{aligned}
+P(||x_i|| <m)&=\frac{\text{volume of the p-ball with radius m centered at origin}}{\text{volume of whole ball with radius 1 centered at the origin}} \\
+&= \frac{\pi m^p}{\pi 1^p} \\
+&= m^p
+\end{aligned}
+$$
+and therefore
+
+$$
+\begin{aligned}
+P(||x_i|| \geq m) &= 1 - P(||x_i|| < m) \\
 &= 1-m^p
 \end{aligned}
 $$
 
-And therefore,
-$$ \begin{aligned}
-\frac{1}{2}= (1-m^p)^N
+So,
+
+$$ 
+\begin{aligned}
+\frac{1}{2} &= P(X \geq m)  \\
+\frac{1}{2} &= \prod_{i=1}^{N}P(||x_i|| > m) \\
+\frac{1}{2} &= (1-m^p)^N
 \end{aligned}
 $$
 Solving for $m$ yields, 
 
-$$ \begin{aligned}
+$$ 
+\begin{aligned}
 m = {(1 − \frac{1}{2}^{\frac{1}{N}})}^{\frac{1}{p}}
 \end{aligned}
 $$
+
 #Exercise 3. (ESL Ex. 2.8) – 20 pts
 Note: Please write your own code. Don’t use libraries or packages.
 Compare the classification performance of linear regression and k-nearest neighbor clas-
