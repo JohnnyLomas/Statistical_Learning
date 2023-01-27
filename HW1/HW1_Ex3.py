@@ -10,10 +10,41 @@ def classifyLinReg(beta, x):
 	return(y)
 
 #def distance(d1: np.array, d2: np.array) -> int:
-	# TODO: calculate distance in 256 
+# calculate the Euclidean distance between two vectors
+def euclid_dist(newpoint:np.array, trainpoint_i:np.array):
+ distance = sqrt(sum (newpoint - trainpoint_i)**2)
+ return distance
 
 #def classifyKNN(k: int, new_data: np.matrix, data: np.matrix) -> int:
-	#TODO
+ # Find k- nearest neighbors
+def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
+ distances = list()
+ for j in range(lenght(new_data)):
+ for i in range(length(data)): # for data_row in data:
+ dist = euclid_dist(new_data[j,:], data[i,:])
+ distances.append((data, dist))
+ distances.sort(distances)
+
+ neighbors = distances[0:k-1, :]
+ return neighbors 
+ 
+# Make a prediction with neighbors
+def predict_classification(data, new_data, k):
+ neighbors = classifyKNN(data, new_data, k)
+ output_values = [neighbors[:,-1]]
+ prediction = max(set(output_values), key=output_values.count)
+ return prediction
+ 
+# kNN Algorithm
+def k_nearest_neighbors(data, new_data, k):
+ predictions = list()
+ for i in range(length(new_data)):
+ output = predict_classification(data, i, k)
+ predictions.append(output)
+ return(predictions)
+
+
+
 
 def importData(file: str, addOnes: bool):
 	# Import data to a matrix
@@ -49,9 +80,13 @@ classified = classifyLinReg(beta, x)
 error = computeError(y, classified)
 print(f"Linear regression error (test sest): {error}")
 
-# Import training data
-# Train linear regression
-# Classify training set by linear regression -> compute error
-# Classify test set by linear regression -> compute error
+
 # Classify training by k-NN (1, 3, 5, 7, 15) -> compute error
 # Classify test set by k-NN (1, 3, 5, 7, 15) -> compute error
+
+
+
+
+
+
+ 

@@ -42,27 +42,31 @@ $$
 so that the $x_i$ are uniformly distributed in a p-dimensional unit ball centered at the origin and $||.||$ represents the Euclidean norm. 
 
 Let $m$ be the median distance from the origin to the closest data point. Therefore, 
+#P(\text{All N points are further than m from the origin})=\frac{1}{2}
 $$ \begin{aligned}
-P(\text{All N points are further than m from the origin})=\frac{1}{2}
+P(X \leq m) = \frac{1}{2} \\
+1-P(X > m) = \frac{1}{2}
 \end{aligned} \\
-P(X \geq m) = \frac{1}{2}
+
 $$
-by the definition of the median. The points $x_i$ are independent distibuted over the ball, so
+by the definition of the median. The points $x_i$ are independent distributed over the ball, so
 
 $$ \begin{aligned}
-P(X \geq m) = \prod_{i=1}^{N}P(||x_i|| > m) = \frac{1}{2}
+1-P(X > m) &= \frac{1}{2} \\
+1-\prod_{i=1}^{N}P(||x_i|| > m) &= \frac{1}{2} \\
+\frac{1}{2}&= \prod_{i=1}^{N}P(||x_i|| > m)
 \end{aligned}
 $$
-Because the points $x_i$ are uniformly distributed in the unit ball, 
+Because the points $x_i$ are uniformly distributed in the unit ball in  p-dimensions, 
 
 $$ \begin{aligned}
-P(X \geq m) &= 1 - P(X < m) \\
+P(||x_i|| > m) &= 1 - P(||x_i|| \leq m) \\
 \end{aligned}
 $$
 Because the points are uniformly distributed over the unit ball in p-dimensions, 
 
 $$\begin{aligned}
-P(||x_i|| <m)&=\frac{\text{volume of the p-ball with radius m centered at origin}}{\text{volume of whole ball with radius 1 centered at the origin}} \\
+P(||x_i|| \leq m)&=\frac{\text{volume of the p-ball with radius m centered at origin}}{\text{volume of whole ball with radius 1 centered at the origin}} \\
 &= \frac{\pi m^p}{\pi 1^p} \\
 &= m^p
 \end{aligned}
@@ -95,7 +99,5 @@ $$
 
 #Exercise 3. (ESL Ex. 2.8) – 20 pts
 Note: Please write your own code. Don’t use libraries or packages.
-Compare the classification performance of linear regression and k-nearest neighbor clas-
-sification on the zipcode data. In particular, consider only the 2’s and 3’s, and k = 1, 3, 5, 7
-and 15. Show both the training and test error for each choice. The zipcode data are
-available from the book website https://www.hastie.su.domains/ElemStatLearn/.
+Compare the classification performance of linear regression and k-nearest neighbor classification on the zipcode data. In particular, consider only the 2’s and 3’s, and k = 1, 3, 5, 7 and 15. Show both the training and test error for each choice. The zipcode data are available from the book website https://www.hastie.su.domains/ElemStatLearn/.
+
