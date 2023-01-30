@@ -9,48 +9,39 @@ def classifyLinReg(beta, x):
 	y = (y > 0.5).astype(int)
 	return(y)
 
-#def distance(d1: np.array, d2: np.array) -> int:
-# calculate the Euclidean distance between two vectors
 def euclid_dist(newpoint:np.array, trainpoint_i:np.array):
- distance = np.sqrt(sum (newpoint - trainpoint_i)**2)
- return distance
+	distance = np.sqrt(sum (newpoint - trainpoint_i)**2)
+	return distance
 
-#def classifyKNN(k: int, new_data: np.matrix, data: np.matrix) -> int:
- # Find k- nearest neighbors
-def distance_KNN(k: int, new_data: np.matrix, data: np.matrix):
+def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
 	classified = []
 	for j in range(len(new_data)):
 		distances = []
 		for i in range(len(data)): # for data_row in data:
 			distances.append(euclid_dist(new_data[j,1:], data[i,1:]))
 		
-		train = data[:, 0] 
-		np.append(distances, train)
-		# Sort train
-		# Take the smallest k values
-		# Compute sum(smallest k values)/k and compare with threshold (0.5)
+		# Make copy of responses that we can manipulate without destroying original.
+		# Then associate the computed distances
+		train = data[:, 0]
+		distances = np.column_stack((distances, train))
+		
+		# Create structured array (easier to sort)
+		dt = {'names':['dist', 'response'], 'formats':[float, int]}
+		sort = np.zeros(len(train), dtype=dt)
+		sort['dist'] = distances[:, 0]
+		sort['response'] = distances[:, 1]
+		
+		# Sort the neighbors y distance
+		sort = np.sort(sort, order='dist')
+		
+		# Vote on the smallest k values
+		prediction = sum(sort[0:k]['response'])/k
+		prediction = (prediction > 0.5).astype(int)
+		
 		# Assign prediction
 		classified.append(prediction)
 	
 	return(classified)
- 
-# Make a prediction with neighbors
-def predict_classification(data, new_data, k):
-	neighbors = distance_KNN(k, new_data, data)
-	output_values = [neighbors[:,-1]]
-	prediction = max(set(output_values), key=output_values.count)
-	return prediction
- 
-# kNN Algorithm
-def k_nearest_neighbors(data, new_data, k):
-	predictions = list()
-	for i in range(len(new_data)):
-		output = predict_classification(data, new_data, k)
-		predictions.append(output)
-	return(predictions)
-
-
-
 
 def importData(file: str, addOnes: bool, splitResponse: bool):
 	# Import data to a matrix
@@ -73,34 +64,30 @@ def importData(file: str, addOnes: bool, splitResponse: bool):
 	if splitResponse:
 		return(x_mat, y_vec)
 	else:
-		return(np.append(y_vec, x_mat))
+		return(np.column_stack((y_vec,x_mat)))
 
 def computeError(truth, prediction):
 	return(1 - sum(truth == prediction)/len(truth))
 
+# Train linear regression and classify training set
 x, y = importData('zip.train', True, True)
 beta = trainNormalEquation(x, y)
 classified = classifyLinReg(beta, x)
 error = computeError(y, classified)
 print(f"\nLinear regression error (training set): {error}")
 
+# Classify test set with linear regression
 x, y = importData('zip.test', True, True)
 classified = classifyLinReg(beta, x)
 error = computeError(y, classified)
-print(f"Linear regression error (test sest): {error}")
+print(f"Linear regression error (test set): {error}")
 
-x_train,y_train = importData("zip.train", False)
-x_test, y_test = importData("zip.test", False)
-classified = k_nearest_neighbors(x_train, x_test, 1)
+# Classify test set by KNN
+train = importData("zip.train", False, False)
+test = importData("zip.test", False, False)
 
-
-
-# Classify training by k-NN (1, 3, 5, 7, 15) -> compute error
-# Classify test set by k-NN (1, 3, 5, 7, 15) -> compute error
-
-
-
-
-
-
- 
+k_list = [1,3,5,7,15]
+for k in k_list:
+	classified = classifyKNN(k, test, train)
+	error = computeError(test[:, 0], classified)
+	print(f"K-Nearest Neighbors error (k = {k}): {error}")
