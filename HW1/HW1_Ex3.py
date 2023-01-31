@@ -70,17 +70,17 @@ def computeError(truth, prediction):
 	return(1 - sum(truth == prediction)/len(truth))
 
 # Train linear regression and classify training set
-#x, y = importData('zip.train', True, True)
-#beta = trainNormalEquation(x, y)
-#classified = classifyLinReg(beta, x)
-#error = computeError(y, classified)
-#print(f"\nLinear regression error (training set): {error}")
+x, y = importData('zip.train', True, True)
+beta = trainNormalEquation(x, y)
+classified = classifyLinReg(beta, x)
+error = computeError(y, classified)
+print(f"\nLinear regression error (training set): {error}")
 
 # Classify test set with linear regression
-#x, y = importData('zip.test', True, True)
-#classified = classifyLinReg(beta, x)
-#error = computeError(y, classified)
-#print(f"Linear regression error (test set): {error}")
+x, y = importData('zip.test', True, True)
+classified = classifyLinReg(beta, x)
+error = computeError(y, classified)
+print(f"Linear regression error (test set): {error}")
 
 # Classify test set by KNN
 train = importData("zip.train", False, False)
