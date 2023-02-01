@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Natalie Bladis" />
+<meta name="author" content="Natalie Bladis, Johnny Lomas" />
 
-<meta name="date" content="2023-01-30" />
+<meta name="date" content="2023-01-31" />
 
 <title>STAT760_Homework1</title>
 
@@ -1635,8 +1635,8 @@ pre code {
 
 
 <h1 class="title toc-ignore">STAT760_Homework1</h1>
-<h4 class="author">Natalie Bladis</h4>
-<h4 class="date">2023-01-30</h4>
+<h4 class="author">Natalie Bladis, Johnny Lomas</h4>
+<h4 class="date">2023-01-31</h4>
 
 </div>
 
@@ -1772,7 +1772,7 @@ def classifyLinReg(beta, x):
     return(y)
 
 def euclid_dist(newpoint:np.array, trainpoint_i:np.array):
-    distance = np.sqrt(sum (newpoint - trainpoint_i)**2)
+    distance = np.sqrt(sum((newpoint - trainpoint_i)**2))
     return distance
 
 def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
@@ -1793,7 +1793,7 @@ def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
         sort[&#39;dist&#39;] = distances[:, 0]
         sort[&#39;response&#39;] = distances[:, 1]
         
-        # Sort the neighbors y distance
+        # Sort the neighbors by distance
         sort = np.sort(sort, order=&#39;dist&#39;)
         
         # Vote on the smallest k values
@@ -1844,10 +1844,10 @@ print(f&quot;\nLinear regression error (training set): {error}&quot;)
 <pre class="python"><code>x, y = importData(&#39;zip.test&#39;, True, True)
 classified = classifyLinReg(beta, x)
 error = computeError(y, classified)
-print(f&quot;Linear regression error (test sest): {error}&quot;)
+print(f&quot;Linear regression error (test set): {error}&quot;)
 
 # Classify test set by KNN</code></pre>
-<pre><code>## Linear regression error (test sest): 0.04120879120879117</code></pre>
+<pre><code>## Linear regression error (test set): 0.04120879120879117</code></pre>
 <pre class="python"><code>train = importData(&quot;zip.train&quot;, False, False)
 test = importData(&quot;zip.test&quot;, False, False)
 
@@ -1856,26 +1856,11 @@ for k in k_list:
     classified = classifyKNN(k, test, train)
     error = computeError(test[:, 0], classified)
     print(f&quot;K-Nearest Neighbors error (k = {k}): {error}&quot;)</code></pre>
-<pre><code>## K-Nearest Neighbors error (k = 1): 0.4697802197802198
-## K-Nearest Neighbors error (k = 3): 0.4725274725274725
-## K-Nearest Neighbors error (k = 5): 0.49725274725274726
-## K-Nearest Neighbors error (k = 7): 0.48351648351648346
-## K-Nearest Neighbors error (k = 15): 0.46153846153846156</code></pre>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>d5b4d77bb08ac6c2d3c8c659cf30d412261aa236</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
+<pre><code>## K-Nearest Neighbors error (k = 1): 0.02472527472527475
+## K-Nearest Neighbors error (k = 3): 0.030219780219780223
+## K-Nearest Neighbors error (k = 5): 0.030219780219780223
+## K-Nearest Neighbors error (k = 7): 0.03296703296703296
+## K-Nearest Neighbors error (k = 15): 0.038461538461538436</code></pre>
 </div>
 </div>
 

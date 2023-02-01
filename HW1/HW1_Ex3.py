@@ -10,7 +10,7 @@ def classifyLinReg(beta, x):
 	return(y)
 
 def euclid_dist(newpoint:np.array, trainpoint_i:np.array):
-	distance = np.sqrt(sum (newpoint - trainpoint_i)**2)
+	distance = np.sqrt(sum((newpoint - trainpoint_i)**2))
 	return distance
 
 def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
@@ -31,7 +31,7 @@ def classifyKNN(k: int, new_data: np.matrix, data: np.matrix):
 		sort['dist'] = distances[:, 0]
 		sort['response'] = distances[:, 1]
 		
-		# Sort the neighbors y distance
+		# Sort the neighbors by distance
 		sort = np.sort(sort, order='dist')
 		
 		# Vote on the smallest k values
