@@ -8,7 +8,6 @@ output:
   pdf_document: default
 ---
 
-
 # Exercise 1. (ESL Ex. 2.1) – 5 pts
 Suppose each of K classes has an associated target tk, which is a vector of all zeros,
 except a one in the kth position. Show that classifying to the largest element of ˆy amounts to choosing the closest target, mink ‖tk −ˆy‖, if the elements of ˆy sum to one.
@@ -110,6 +109,7 @@ and 15. Show both the training and test error for each choice. The zipcode data 
 available from the book website https://www.hastie.su.domains/ElemStatLearn/.
 
 ## Solution
+
 
 ```{r setup, include=FALSE}
 knitr::knit_engines$set(python = reticulate::eng_python)
