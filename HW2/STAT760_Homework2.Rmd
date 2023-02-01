@@ -1,0 +1,33 @@
+---
+title: "STAT760_Homework2"
+author: "Natalie Bladis, Johnny Lomas"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+## Exercise 1. (ESL Ex. 3.12) – 3 pts
+Show that the ridge regression estimates can be obtained by ordinary least squares regression
+on an augmented data set. We augment the centered matrix X with padditional rows √λI, and
+augment y with pzeros. By introducing artificial data having response value zero, the fitting
+procedure is forced to shrink the coefficients toward zero. This is related to the idea of hints due to
+Abu-Mostafa (1995), where model constraints are implemented by adding artificial data examples
+that satisfy them.
+
+
+
+## Exercise 2. (Programming) – 12 pts
+Use prostate cancer example to reproduce the following figure. The Prostate data are available
+from the book website https://www.hastie.su.domains/ElemStatLearn/.
+
+
+
+
+## Exercise 3. (Programming) – 15 pts
+Use prostate cancer example to produce a similar figure below (also Figure 3.7 in ESL), where
+the x-axis is the parameter λinstead of degrees of freedom. The estimates of prediction errors
+are obtained by 10-fold cross-validation. The Prostate data are available from the book website
+https://www.hastie.su.domains/ElemStatLearn/.
+1
