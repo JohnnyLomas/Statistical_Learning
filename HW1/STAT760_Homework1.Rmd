@@ -47,15 +47,15 @@ $$ \begin{aligned}
 P(X \leq m) = \frac{1}{2} \\
 1-P(X > m) = \frac{1}{2}
 \end{aligned} \\
-
 $$
+
 by the definition of the median. The points $x_i$ are independent distributed over the ball, so
 
 $$ \begin{aligned}
 1-P(X > m) &= \frac{1}{2} \\
 1-\prod_{i=1}^{N}P(||x_i|| > m) &= \frac{1}{2} \\
 \frac{1}{2}&= \prod_{i=1}^{N}P(||x_i|| > m)
-\end{aligned}
+\end{aligned} 
 $$
 Because the points $x_i$ are uniformly distributed in the unit ball in  p-dimensions, 
 
@@ -71,6 +71,7 @@ P(||x_i|| \leq m)&=\frac{\text{volume of the p-ball with radius m centered at or
 &= m^p
 \end{aligned}
 $$
+
 and therefore
 
 $$
