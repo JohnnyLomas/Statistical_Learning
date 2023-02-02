@@ -8,22 +8,63 @@ output:
   pdf_document: default
 ---
 
+```{r include=FALSE}
+setwd("/Users/ntb3/Documents/STAT_760_Statistical_Learning/Statistical_Learning")
+```
 ## Exercise 1. (ESL Ex. 3.12) – 3 pts
 Show that the ridge regression estimates can be obtained by ordinary least squares regression
-on an augmented data set. We augment the centered matrix X with padditional rows √λI, and
-augment y with pzeros. By introducing artificial data having response value zero, the fitting
+on an augmented data set. We augment the centered matrix X with p additional rows $\sqrt{\lambda{I}}$, and
+augment y with p zeros. By introducing artificial data having response value zero, the fitting
 procedure is forced to shrink the coefficients toward zero. This is related to the idea of hints due to
 Abu-Mostafa (1995), where model constraints are implemented by adding artificial data examples
 that satisfy them.
 
+## Solution:
+Let $X^*=\begin{bmatrix}X \\\sqrt{\lambda}I_p\end{bmatrix}$ and $y^* = \begin{bmatrix}y \\0_p\end{bmatrix}$ where $I_p$ is a $p \times p$ identify matrix and $0_p$ is a $p \times 1$ vector of zeros. 
 
+Then 
+
+$$
+\begin{aligned}
+X^{*T}X^* &= \begin{bmatrix}X \sqrt{\lambda}I_p\end{bmatrix} \begin{bmatrix}X \\\sqrt{\lambda}I_p\end{bmatrix} \\
+&= X^TX+\lambda I_p
+\end{aligned}
+$$
+and 
+$$
+\begin{aligned}
+X^{*T}y^* &= \begin{bmatrix}X \sqrt{\lambda}I_p\end{bmatrix} \begin{bmatrix} y \\0_p\end{bmatrix} \\
+&= X^Ty+ \sqrt\lambda I_p 0_p \\
+&= X^Ty
+\end{aligned}
+$$
+Therefore, 
+$$
+\begin{aligned}
+\hat{\beta}_{new} &= (X^{*T}X^*)^{-1}X^{*T}y^* \\
+&= (X^Ty+ \lambda I_p)^{-1} X^Ty
+\end{aligned}
+$$
+Which is the $\hat{\beta}$ estiamte for ridge regression. 
 
 ## Exercise 2. (Programming) – 12 pts
 Use prostate cancer example to reproduce the following figure. The Prostate data are available
 from the book website https://www.hastie.su.domains/ElemStatLearn/.
 
 
+```{r}
+prostate <- read.delim("prostate.tsv")
 
+```
+
+
+1) Create a loop that creates a linear model for all possible subsets of size k for k = 0,1,2,....n=8 and computes rss for model and stores (k, RSS, model) #is model necessary??
+
+2) for each value of K identify minimal RSS
+
+3) Plot all data from one as grey, plot all data for 2 as red, connect all red points. 
+
+4) Axes labels x= Subset Size k, y= Residual Sum-of-Squares, Title = none
 
 ## Exercise 3. (Programming) – 15 pts
 Use prostate cancer example to produce a similar figure below (also Figure 3.7 in ESL), where
