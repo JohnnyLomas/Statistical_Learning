@@ -9,7 +9,8 @@ output:
 ---
 
 ```{r include=FALSE}
-setwd("/Users/ntb3/Documents/STAT_760_Statistical_Learning/Statistical_Learning")
+#setwd("/Users/ntb3/Documents/STAT_760_Statistical_Learning/Statistical_Learning")
+setwd("/Users/jslomas/Box/STAT_760/Statistical_Learning")
 ```
 ## Exercise 1. (ESL Ex. 3.12) – 3 pts
 Show that the ridge regression estimates can be obtained by ordinary least squares regression
@@ -53,7 +54,62 @@ from the book website https://www.hastie.su.domains/ElemStatLearn/.
 
 
 ```{r}
+setwd("/Users/jslomas/Box/STAT_760/Statistical_Learning/HW2")
+library(dplyr)
+library(ggplot2)
+
+# Input (x): Augmented data matrix
+# Input (y): Response vector
+# Return: Fitted parameter vector (beta)
+fitLeastSquares <- function(x, y){
+   beta = solve(t(x) %*% x) %*% t(x) %*% y
+   return(beta)
+}
+
+predictLeastSquares <- function(x, beta) {
+  y_hat <- x %*% beta
+  return(y_hat)
+}
+
+# Input (y)    : Original response vector
+# Input (y_hat): Predicted response vector
+# Return       : RSS value, scalar
+computeRSS <- function(y, y_hat){
+  rss <- t(y-y_hat) %*% (y-y_hat)
+  return(rss)
+}
+
 prostate <- read.delim("prostate.tsv")
+response <- as.matrix(prostate %>% select(lpsa))
+data <- prostate %>% select(lcavol:pgg45)
+
+plot_data <- data.frame()
+# TODO: fit null case and add to plotting dataframe
+null_rss <- sum((response - mean(response))^2)
+plot_data <- rbind(plot_data, c(null_rss, 0))
+
+for (feat in 1:ncol(data)){
+  sets <- combn(1:ncol(data), feat)
+  for (set in 1:ncol(sets)){
+    data_subset <- data %>% select(sets[,set])
+    data_subset <- cbind(rep(1, nrow(data)), data_subset)
+    data_subset <- as.matrix(data_subset)
+    
+    beta_hat <- fitLeastSquares(data_subset, response)
+    y_hat <- predictLeastSquares(data_subset, beta_hat)
+    rss <- computeRSS(response, y_hat)
+    
+    plot_data <- rbind(plot_data, c(rss, feat))
+  }
+}
+
+colnames(plot_data) <- c("RSS", "K")
+
+ggplot(plot_data, aes(x=K, y=RSS)) +
+  geom_point() +
+  ylim(c(0,130)) +
+  ylab("Residual Sum-of-Squares") +
+  xlab("Subset size k")
 
 ```
 
