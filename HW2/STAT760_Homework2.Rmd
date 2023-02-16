@@ -155,18 +155,17 @@ for (i in 1:9){
   sets <- append(sets, rep(count, 10))
   count = count + 1
 }
-
+set.seed(1)
 sets <- append(sets, rep(10, 7))
 prostate <- read.delim("prostate.tsv") %>% 
   select(lcavol:lpsa) %>%
   cbind(sort = runif(nrow(prostate), 0, 1)) %>%
   arrange(sort) %>%
   select(lcavol:lpsa) %>%
-  scale(TRUE, TRUE) %>%
   cbind(sets = sets)
-  
 
 prostate <- as.data.frame(prostate)
+prostate <- cbind(intercept = rep(1, nrow(prostate)), prostate)
 
 
 # Input (x): Augmented data matrix
@@ -177,7 +176,8 @@ prostate <- as.data.frame(prostate)
 
 fitRidgeRegression <- function(x, y, l){
    I = as.matrix(diag(ncol(x)))
-   beta_ridge = solve(t(x) %*% x + l*I) %*% t(x) %*% y
+   I[1,1] = 0
+   beta_ridge = solve((t(x) %*% x) + l*I) %*% t(x) %*% y
    return(beta_ridge)
 }
 
@@ -189,61 +189,56 @@ predictRidgeReg <- function(x, beta_ridge) {
 
 CV_error <- data.frame()
 
-lambda <- c(2,10,25,50,100,250, 500, 750,1000)
-lambda <- log(lambda)
+lambda <- c(0.001, 0.01, 0.5, 5,10,25,50, 75, 100,150, 200, 250)
+#lambda <- log(lambda)
+#lambda <-1/lambda
 
 for (l in lambda){
   errors <- c()
   for (test in 1:10){
     train_set <- prostate %>% filter(sets != test)
     test_set <- prostate %>% filter(sets == test)
-    x_train <- as.matrix(train_set %>% select(lcavol:pgg45))
+    x_train <- as.matrix(train_set %>% select(intercept:pgg45)) #%>% scale(T,F)
     y_train <- as.matrix(train_set %>% select(lpsa))
   
-    x_test <- as.matrix(test_set %>% select(lcavol:pgg45))
+    x_test <- as.matrix(test_set %>% select(intercept:pgg45)) #%>% scale(T,T)
     y_test <- as.matrix(test_set %>% select(lpsa))
   
     beta_ridge_response <- fitRidgeRegression(x_train, y_train, l)
     ridge_reg_hat <- predictRidgeReg(x_test, beta_ridge_response)
     
     
-    
-    mse <- mean((ridge_reg_hat - y_test)^2)
+
+    mse <- mean((y_test-ridge_reg_hat)^2)
     errors <- append(errors, mse)
-    
+
   }
   mse_mean <- mean(errors)
   mse_min <- min(errors)
   mse_max <- max(errors)
   mse_sd_plus <- mean(errors) + sd(errors)
   mse_sd_minus <- mean(errors) - sd(errors)
-  
+
   
   CV_error <- rbind(CV_error, c(l, mse_mean, mse_min, mse_max, mse_sd_minus, mse_sd_plus )) # to change x-axis to df make first input 1/l (d_i^2)/(d_i^2-lambda)
 }
 
 colnames(CV_error) <- c("lambda", "CV", "Min_MSE", "Max_MSE", "minus_sd", "plus_sd")
+CV_error <- CV_error %>% mutate(log_lambda = log(lambda)) #addlog back in here
 
 
 
-
-ggplot(CV_error, aes(x=lambda, y=CV)) +
+ggplot(CV_error, aes(x=log_lambda, y=CV)) +
   geom_point() +
-  #geom_errorbar(aes(x=lambda, ymin=Min_MSE, ymax=Max_MSE), width=0.4, colour="grey", alpha=0.9, size=1.3) +
-  geom_errorbar(aes(x=lambda, ymin=minus_sd, ymax=plus_sd), width=0.4, colour="grey", alpha=0.9, size=1.3) +
-  #ylim(c(0,1)) +
+  geom_line() +
+  #geom_errorbar(aes(x=log_lambda, ymin=Min_MSE, ymax=Max_MSE), width=0.2, colour="grey", alpha=0.9, size=0.5) +
+  geom_errorbar(aes(x=log_lambda, ymin=minus_sd, ymax=plus_sd), width=0.2, colour="grey", alpha=0.9, size=0.5) +
+  #ylim(c(0.25,1.25)) +
+  #xlim(c(-6,7)) +
   ylab("CV Error") +
-  xlab("lambda")
-  
-
-
+  xlab("log(lambda)") +
+  ggtitle("Ridge Regression")
 
 ```
 
-Questions 
 
-1) Does question 1 look ok?
-2) Do we need red dots for minimum and the red lines connecting the minimums for Q2
-3) Q3 = ok? ways to choose lambda? do we need to scale the data? re - book example, do we need to create the confidence interval like bars? Is the best way to choose the lambda value with the df formula and singular value decomposition?
-
-box plot of 10 fold cross valifidation mse, add red minimal dots to Q2 the x-axis should be df = 1/lambda
