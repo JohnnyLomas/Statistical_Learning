@@ -19,7 +19,17 @@ mus = np.column_stack(mus)
 pi_k = train.groupby(["y"])["y"].count()/len(train)
 
 ## Create sigma, the covariance matrix
-sigma = np.cov(train.iloc[:, 1:11], rowvar=False)
+#sigma = np.cov(train.iloc[:, 1:11], rowvar=False)
+sigma = []
+for cls in classes:
+	cls_subset = train.loc[train["y"] == cls]
+	cls_subset = cls_subset.iloc[:, 1:11].to_numpy()
+	mult = []
+	for i in range(len(cls_subset)):
+		mult.append((cls_subset[i, :, np.newaxis] - mus[:, cls-1, np.newaxis]).dot((cls_subset[i, :, np.newaxis] - mus[:, cls-1, np.newaxis]).T))
+	sigma.append(sum(mult))
+
+sigma = sum(sigma)/(len(train)-len(classes))
 
 def classifyLDA(x, mu, pi, sig, classes):
 	x = x[:, np.newaxis]
