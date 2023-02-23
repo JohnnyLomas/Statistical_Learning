@@ -2,11 +2,15 @@
 title: "STAT 760 Homework 3"
 author: "Natalie Bladis and Johnathan Lomas"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+#use_condaenv("dnachisel")
 ```
 
 ## Exercise 1. (ESL Ex 4.2(a)(b))– 5 pts
@@ -17,14 +21,14 @@ LDA (Linear discriminant analysis) is the case when we assume that the classes h
 
 When comparing two classes, $c_1$ and $c_2$, the log-ratio as an equation linear in $x$ is as follows:
 
- \begin{aligned}
+$$\begin{aligned}
 log\frac{Pr(G=c_1|X=x)}{Pr(G=c_2|X=x)}=log\frac{f_{c_1}(x;\mu_{c_1},\Sigma_{c_1})}{f_{c_2}(x;\mu_{c_2},\Sigma_{c_2})} +log \frac{\pi_{c_1}}{\pi_{c_2}}=\delta_{c_1}(x)-\delta_{c_2}(x)
 
-\end{aligned} 
+\end{aligned}$$
 
 where $\delta_{c_1}$ is defined by the linear discriminant function
 
-\begin{aligned}
+$$\begin{aligned}
 \delta_{c_1}& = -\frac{p}{2} \log(2\pi)-\frac{1}{2} \log|\Sigma_{c_1}|-\frac{1}{2}(x-\mu_k)^T\Sigma_{c_1}^T(x-\mu_{c_1})+ \log\pi_{c_1} \\
 
 &= -\frac{p}{2} \log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x-x^T \Sigma_{c_1}^{-1}\mu_{c_1} - \mu_{c_1}^T\Sigma_{c_1}^{-1} x+ \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \pi_{c_1} \\
@@ -32,11 +36,11 @@ where $\delta_{c_1}$ is defined by the linear discriminant function
 &= -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \pi_{c_1}  \\
 
 &= -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \left( \frac{N_{c_1}}{N} \right)
-\end{aligned}
+\end{aligned}$$
 
 The decision boundary between the two classes $c_1$ and $c_2$ is described by the equation $\{ x: \delta_{c_1}(x) = \delta_{c_2}(x) \}$. For LDA corresponding to the case of equal covariance matrices $\Sigma_{c_1} =\Sigma_{c_2} = \Sigma$, our decision boundaries for the case when there are only 2 classes, will be $\delta_{c_2}(x)>\delta_{c_1}(x)$, where class 2 is the classification outcome (and class 1 otherwise) as follows
 
-\begin{aligned}
+$$\begin{aligned}
 \delta_{c_2}(x)&>\delta_{c_1}(x) \\
 
 -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_2}|-\frac{1}{2} (x^T \Sigma_{c_2}^{-1}x- 2x^T \Sigma_{c_2}^{-1}\mu_{c_2} + \mu_{c_2}^T\Sigma_{c_2}^{-1} \mu_{c_2} ) + \log \left( \frac{N_{c_2}}{N} \right) &> -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \left( \frac{N_{c_1}}{N} \right) \\
@@ -47,7 +51,7 @@ The decision boundary between the two classes $c_1$ and $c_2$ is described by th
 
 x^T \Sigma^{-1}\mu_{c_2} -\frac{1}{2}\mu_{c_2}^T\Sigma^{-1} \mu_{c_2}  + \log \left( \frac{N_{c_2}}{N} \right) &>  + x^T \Sigma^{-1}\mu_{c_1} -\frac{1}{2} \mu_{c_1}^T\Sigma^{-1} \mu_{c_1}  + \log \left( \frac{N_{c_1}}{N} \right) \\
 
-\end{aligned}
+\end{aligned}$$
 
 
 
@@ -57,21 +61,21 @@ x^T \Sigma^{-1}\mu_{c_2} -\frac{1}{2}\mu_{c_2}^T\Sigma^{-1} \mu_{c_2}  + \log \l
 ### (b) Solution:
 In order to minimize $\sum_{i=1}^N(y_i-\beta_0-x_i^T\beta)^2$ for $(\beta_0,\beta)'$ the solution $(\hat{\beta_0}, \hat{\beta})'$ must satisfy the normal equation which is for this case 
 
-\begin{aligned}
+$$\begin{aligned}
 X^TX \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} =X^Ty
-\end{aligned}
+\end{aligned}$$
 
 
 
 Let $x_i^T=(x_{i1}, ..., x_{ip}) \in \mathbb{R}^{1 \times p}, \mathbf{1}^T=(1,....,1) \in \mathbb{R}^{1 \times p}, Y^T=(y_1, ..., y_p) \in \mathbb{R}^{1 \times N}, \beta^T = (\beta_1, ..., \beta_p) \in \mathbb{R}^{1 \times p}$. 
 
-\begin{aligned}
+$$\begin{aligned}
 \mathbf{X} = \begin{bmatrix} 1 & x_{11} & \cdots  & x_{1p} \\ 1 & x_{21} & \cdots  & x_{2p} \\ \vdots  & \vdots  & \ddots  & \vdots  \\ 1 & x_{N1} & \cdots  & x_{Np} \end{bmatrix} = \begin{bmatrix} 1 & x_1^T \\ 1 & x_2^T \\ \vdots  & \vdots \\ 1 & x_N^T  \end{bmatrix}
-\end{aligned}
+\end{aligned}$$
 
 where $X$ is a $N \times (p+1)$ matrix and 
 
-\begin{aligned}
+$$\begin{aligned}
 \mathbf{X}^T = \begin{bmatrix}
 1 & 1 & \cdots  & 1 \\
 x_{11} & x_{21} & \cdots  & x_{N1} \\
@@ -82,12 +86,12 @@ x_{1p} &  x_{2p}& \cdots  & x_{Np}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
 \end{bmatrix} 
-\end{aligned}
+\end{aligned}$$
 
 
 where $X^T$ is a $(p+1) \times N$ matrix. It follows that 
 
-\begin{aligned}
+$$\begin{aligned}
 \mathbf{X}^T\mathbf{X} &= \begin{bmatrix}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
@@ -102,42 +106,42 @@ N & \sum_{i=1}^N x_i^T \\
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & \sum_{i=1}^N x_i x_i^T 
 \end{bmatrix}
-\end{aligned}
+\end{aligned}$$
 
 which is a $(p+1)\times(p+1)$ dimension matrix. To rewrite $\sum_{i=1}^N x_i x_i^T$ consider the estimate of the pooled covariance matrix $\hat{\sum}$ given by the formula
 
-\begin{aligned}
+$$\begin{aligned}
 \hat{\sum} = \frac{1}{N-K}\sum_{k=1}^{K} \sum_{i:G_i=k} (x_i-\mu_k)(x_i-\mu_k)^T
-\end{aligned}
+\end{aligned}$$
 
 
 
 For two classes ($K=2$) the formula becomes 
 
-\begin{aligned}
+$$\begin{aligned}
 \hat{\Sigma} &= \frac{1}{N-2} \left( \sum_{i:g_i=1} (x_i-\mu_1)(x_i-\mu_1)^T +  \sum_{i:g_i=2} (x_i-\mu_2)(x_i-\mu_2)^T \right) \\
 
 &= \frac{1}{N-2} \left( \sum_{i:g_i=1} x_i x_i^T - N_1\mu_1\mu_1^T + \sum_{i:g_i=2}  x_i x_i^T - N_2\mu_2\mu_2^T  \right) \\
-\end{aligned}
+\end{aligned}$$
 
 and solving this for $\sum_{i=1}^N x_i x_i^T$
 
-\begin{aligned}
+$$\begin{aligned}
 \sum_{i=1}^N x_i x_i^T = (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T 
-\end{aligned}
+\end{aligned}$$
 
 so $X^TX$ becomes 
 
-\begin{aligned}
+$$\begin{aligned}
 X^TX= \begin{bmatrix}
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T
 \end{bmatrix}
-\end{aligned}
+\end{aligned}$$
 
 We are given that our response for the first class is $-N/N_1$ and $N/N_2$ for the second class, where $N=N_1 + N_2$, so
 
-\begin{aligned}
+$$\begin{aligned}
 X^Ty &= \begin{bmatrix}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
@@ -151,18 +155,18 @@ x_1 & x_2 & \cdots & x_N
 \end{bmatrix} \\
 &= \begin{bmatrix}0 \\ -N\mu_1+N\mu_2 \end{bmatrix}
 
-\end{aligned}
+\end{aligned}$$
 
 so 
 
-\begin{aligned}
+$$\begin{aligned}
 X^TX \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} &= X^Ty \\
 \begin{bmatrix}
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T
 \end{bmatrix} \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} &= \begin{bmatrix}0 \\ -N\mu_1+N\mu_2 \end{bmatrix}
 
-\end{aligned}
+\end{aligned}$$
 
 and 
 
@@ -176,7 +180,7 @@ Similarly,
 $$(N_1\mu_1 + N_2\mu_2)\beta_0+((N-2)\hat{\Sigma} + N_1\mu_1 \mu_1^T+N_2\mu_2\mu_2^T)\beta = N(\mu_2-\mu_1)$$
 Substituting in $\beta_0=-\frac{1}{N}(N_1\mu_1^T+N_2\mu_2^T)\beta$, the left side of the equation can be simplified as follows:
 
-\begin{aligned}
+$$\begin{aligned}
 (N_1\mu_1 + N_2\mu_2)(-\frac{1}{N}(N_1\mu_1^T+N_2\mu_2^T)\beta)+((N-2)\hat{\Sigma} + N_1\mu_1 \mu_1^T+N_2\mu_2\mu_2^T)\beta &= \\ 
 
 ((N-2)\hat{\Sigma} - \frac{N_1^2}{N}\mu_1\mu_1^T - \frac{2N_1N_2}{N}\mu_1\mu_2^T-\frac{N_2^2}{N}\mu_2\mu_2^T+N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T)\beta &= \\
@@ -192,7 +196,7 @@ Substituting in $\beta_0=-\frac{1}{N}(N_1\mu_1^T+N_2\mu_2^T)\beta$, the left sid
 ((N-2)\hat{\Sigma}+\frac{N_1N_2}{N}(\mu_2-\mu_1)(\mu_2-\mu_1)^T)\beta 
 
 
-\end{aligned}
+\end{aligned}$$
 
 
 So, the solution $\hat{\beta}$ satisfies
@@ -215,76 +219,82 @@ The Lagrangian form of the problem $max \  a^T\mathbf{B}a$ subject to $a^TWa=1$ 
 $$L(a, \lambda) = a^T\mathbf{B}a+\lambda(a^TWa-1)$$
 The partial derivatives with respect to $a$ and $\lambda$ are
 
-\begin{aligned}
+$$\begin{aligned}
 \frac{\delta L(a, \lambda)}{\delta a}=2\mathbf{B}a+2\lambda\mathbf{W}a=0 \\
 \frac{\delta L(a, \lambda)}{\delta \lambda}=a^TWa-1=0
-\end{aligned}
+\end{aligned}$$
 
 Solving the first equation for $\lambda a$
 
-\begin{aligned}
+$$\begin{aligned}
 2\mathbf{B}a+2\lambda\mathbf{W}a=0 \\
 \lambda\mathbf{W}a= - \mathbf{B}a \\
 \lambda a= - \mathbf{W}^{-1}\mathbf{B}a \\
 
-\end{aligned}
+\end{aligned}$$
 
 This is in eigen decomposition form and since we want to maximize the original quantity, we know that  $a$ must be the first eigenvector and $\lambda$ the corresponding eigenvalue to the matrix $-\mathbf{W}^{-1}\mathbf{B}$
 
 ## Exercise 3. (Programming) – 25 pts
 Write a computer program to classify the vowel class in the data by Linear Discriminator Analysis. Compute the misclassification error for the test data. The Vowel data are available from the book website https://www.hastie.su.domains/ElemStatLearn/.
 
+```{python}
+import pandas as pd
+import numpy as np
 
+def readData(file):
+	return pd.read_csv(file, sep=",", usecols=lambda x: x != "row.names")
 
+train  = readData("vowel.train")
 
+## Create mu_k, a matrix were the columns are the class-wise means for each predictor
+classes = train["y"].unique()
+mus = []
+for cls in classes:
+	cls_subset = train.loc[train["y"] == cls]
+	cls_subset = cls_subset.iloc[:, 1:11]
+	mus.append(cls_subset.mean(axis=0).to_numpy())
+mus = np.column_stack(mus)
 
+## Create pi_k, a vector of the classwise prior estimates
+pi_k = train.groupby(["y"])["y"].count()/len(train)
 
+## Create sigma, the covariance matrix
+#sigma = np.cov(train.iloc[:, 1:11], rowvar=False)
+sigma = []
+for cls in classes:
+	cls_subset = train.loc[train["y"] == cls]
+	cls_subset = cls_subset.iloc[:, 1:11].to_numpy()
+	mult = []
+	for i in range(len(cls_subset)):
+		mult.append((cls_subset[i, :, np.newaxis] - mus[:, cls-1, np.newaxis]).dot((cls_subset[i, :, np.newaxis] - mus[:, cls-1, np.newaxis]).T))
+	sigma.append(sum(mult))
 
+sigma = sum(sigma)/(len(train)-len(classes))
 
- Excercise 1 alternate
- 
- 
+def classifyLDA(x, mu, pi, sig, classes):
+  x = x[:, np.newaxis]
+  delta = []
+  for c in classes:
+    mu_k = mu[:, c-1, np.newaxis]
+    delta.append(float(x.T.dot(np.linalg.inv(sig)).dot(mu_k) - (mu_k.T.dot(np.linalg.inv(sig)).dot(mu_k))/2 + np.log(pi[c])))
+  return(max(range(len(delta)), key=delta.__getitem__) + 1)
 
-$$\begin{aligned}
-N \beta_0 + \left(  \sum_{i=1}^N x_i^T\right) \beta &= \sum_{i=1}^N y_i \\
- \beta_0 \sum_{i=1}^N x_i + \left(  \sum_{i=1}^N x_i x_i^T\right) \beta &= \sum_{i=1}^N y_i x_i
-\end{aligned}$$
+data = train.iloc[:, 1:11].to_numpy()
+classified = []
+for i in range(len(data)):
+	classified.append(classifyLDA(data[i,:], mus, pi_k, sigma, classes))
 
-To solving the system of equations above, solve the first equation for $\beta_0$,
+error = 1-sum(train["y"] == classified)/len(train)
+print(f"Training classification error rate: {error}")
 
-so,
+# Classify the test set
+test = readData("vowel.test")
+data = test.iloc[:, 1:11].to_numpy()
+classified = []
+for i in range(len(data)):
+	classified.append(classifyLDA(data[i,:], mus, pi_k, sigma, classes))
 
-$$\begin{aligned}
-\beta_0 = \frac{1}{N} \left( \sum_{i=1}^N y_i- \left( \sum_{i=1}^N x_i^T\right) \beta \right) \\
-\end{aligned}$$
-
-Then plug this into the second equation and solve for $\beta$
-
-$$\begin{aligned}
-( \frac{1}{N} \left( \sum_{i=1}^N y_i- \left( \sum_{i=1}^N x_i^T\right) \beta \right) ) \sum_{i=1}^N x_i + \left(  \sum_{i=1}^N x_i x_i^T\right) \beta &= \sum_{i=1}^N y_i x_i \\
-
- \left( \frac{1}{N} \sum_{i=1}^N y_i- \frac{1}{N}\left( \sum_{i=1}^N x_i^T\right) \beta \right)  \sum_{i=1}^N x_i + \left(  \sum_{i=1}^N x_i x_i^T\right) \beta &= \sum_{i=1}^N y_i x_i \\
- 
- \frac{1}{N} \sum_{i=1}^N y_i \sum_{i=1}^N x_i- \frac{1}{N}\left( \sum_{i=1}^N x_i^T\right) \beta  \sum_{i=1}^N x_i + \left(  \sum_{i=1}^N x_i x_i^T\right) \beta &= \sum_{i=1}^N y_i x_i \\
- 
-\left[ \sum_{i=1}^N x_i x_i^T - \frac{1}{N} \left(  \sum_{i=1}^N x_i \right) \left( \sum_{i=1}^N x_i^T\right) \right] \beta &= \sum_{i=1}^N y_i x_i  -  \frac{1}{N} \sum_{i=1}^N y_i \sum_{i=1}^N x_i\\
-  
-\end{aligned}$$
-
-For class 1, let $y_i=t_1$ and for class 2 let $y_i=t_2$, where $t_1=-N/N_1$ and $t_2=N/N_2$ as given in the problem. Then by definition,
-
-$$\begin{aligned}
-\hat{\mu_1} = \frac{1}{N_1} \sum_{i:g_i=1} x_i, \ \ \ \hat{\mu_2} = \frac{1}{N_2} \sum_{i:g_i=2} x_i \\
-\end{aligned} $$
-
-and 
-
-$$\begin{aligned}
-\sum_{i=1}^N x_i = {N_1}\hat{\mu_1}+{N_2}\hat{\mu_2}, \ \ \  \sum_{i=1}^N x_i^T = {N_1}\hat{\mu_1}^T+{N_2}\hat{\mu_2}^T \\
-
-
-\sum_{i=1}^N y_i = {N_1}t_1+{N_2}t_2, \ \ \  \sum_{i=1}^N y_i x_i = t_2{N_1}\hat{\mu_1}+t_2{N_2}\hat{\mu_2} \\
-\end{aligned}$$
-and lastly,
-
-From the definitions above, 
+error = 1-sum(test["y"] == classified)/len(test)
+print(f"Test classification error rate: {error}")
+```
