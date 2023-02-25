@@ -3,14 +3,14 @@ title: "STAT 760 Homework 3"
 author: "Natalie Bladis and Johnathan Lomas"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(reticulate)
-#use_condaenv("dnachisel")
+use_condaenv("base")
 ```
 
 ## Exercise 1. (ESL Ex 4.2(a)(b))– 5 pts
@@ -21,14 +21,15 @@ LDA (Linear discriminant analysis) is the case when we assume that the classes h
 
 When comparing two classes, $c_1$ and $c_2$, the log-ratio as an equation linear in $x$ is as follows:
 
-$$\begin{aligned}
+\begin{aligned}
 log\frac{Pr(G=c_1|X=x)}{Pr(G=c_2|X=x)}=log\frac{f_{c_1}(x;\mu_{c_1},\Sigma_{c_1})}{f_{c_2}(x;\mu_{c_2},\Sigma_{c_2})} +log \frac{\pi_{c_1}}{\pi_{c_2}}=\delta_{c_1}(x)-\delta_{c_2}(x)
 
-\end{aligned}$$
+\end{aligned}
+
 
 where $\delta_{c_1}$ is defined by the linear discriminant function
 
-$$\begin{aligned}
+\begin{aligned}
 \delta_{c_1}& = -\frac{p}{2} \log(2\pi)-\frac{1}{2} \log|\Sigma_{c_1}|-\frac{1}{2}(x-\mu_k)^T\Sigma_{c_1}^T(x-\mu_{c_1})+ \log\pi_{c_1} \\
 
 &= -\frac{p}{2} \log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x-x^T \Sigma_{c_1}^{-1}\mu_{c_1} - \mu_{c_1}^T\Sigma_{c_1}^{-1} x+ \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \pi_{c_1} \\
@@ -36,11 +37,12 @@ $$\begin{aligned}
 &= -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \pi_{c_1}  \\
 
 &= -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \left( \frac{N_{c_1}}{N} \right)
-\end{aligned}$$
+\end{aligned}
+
 
 The decision boundary between the two classes $c_1$ and $c_2$ is described by the equation $\{ x: \delta_{c_1}(x) = \delta_{c_2}(x) \}$. For LDA corresponding to the case of equal covariance matrices $\Sigma_{c_1} =\Sigma_{c_2} = \Sigma$, our decision boundaries for the case when there are only 2 classes, will be $\delta_{c_2}(x)>\delta_{c_1}(x)$, where class 2 is the classification outcome (and class 1 otherwise) as follows
 
-$$\begin{aligned}
+\begin{aligned}
 \delta_{c_2}(x)&>\delta_{c_1}(x) \\
 
 -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_2}|-\frac{1}{2} (x^T \Sigma_{c_2}^{-1}x- 2x^T \Sigma_{c_2}^{-1}\mu_{c_2} + \mu_{c_2}^T\Sigma_{c_2}^{-1} \mu_{c_2} ) + \log \left( \frac{N_{c_2}}{N} \right) &> -\frac{p}{2}log(2\pi)-\frac{1}{2}log|\Sigma_{c_1}|-\frac{1}{2} (x^T \Sigma_{c_1}^{-1}x- 2x^T \Sigma_{c_1}^{-1}\mu_{c_1} + \mu_{c_1}^T\Sigma_{c_1}^{-1} \mu_{c_1} ) + \log \left( \frac{N_{c_1}}{N} \right) \\
@@ -51,7 +53,8 @@ $$\begin{aligned}
 
 x^T \Sigma^{-1}\mu_{c_2} -\frac{1}{2}\mu_{c_2}^T\Sigma^{-1} \mu_{c_2}  + \log \left( \frac{N_{c_2}}{N} \right) &>  + x^T \Sigma^{-1}\mu_{c_1} -\frac{1}{2} \mu_{c_1}^T\Sigma^{-1} \mu_{c_1}  + \log \left( \frac{N_{c_1}}{N} \right) \\
 
-\end{aligned}$$
+\end{aligned}
+
 
 
 
@@ -61,21 +64,21 @@ x^T \Sigma^{-1}\mu_{c_2} -\frac{1}{2}\mu_{c_2}^T\Sigma^{-1} \mu_{c_2}  + \log \l
 ### (b) Solution:
 In order to minimize $\sum_{i=1}^N(y_i-\beta_0-x_i^T\beta)^2$ for $(\beta_0,\beta)'$ the solution $(\hat{\beta_0}, \hat{\beta})'$ must satisfy the normal equation which is for this case 
 
-$$\begin{aligned}
+\begin{aligned}
 X^TX \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} =X^Ty
-\end{aligned}$$
+\end{aligned}
 
 
 
 Let $x_i^T=(x_{i1}, ..., x_{ip}) \in \mathbb{R}^{1 \times p}, \mathbf{1}^T=(1,....,1) \in \mathbb{R}^{1 \times p}, Y^T=(y_1, ..., y_p) \in \mathbb{R}^{1 \times N}, \beta^T = (\beta_1, ..., \beta_p) \in \mathbb{R}^{1 \times p}$. 
 
-$$\begin{aligned}
+\begin{aligned}
 \mathbf{X} = \begin{bmatrix} 1 & x_{11} & \cdots  & x_{1p} \\ 1 & x_{21} & \cdots  & x_{2p} \\ \vdots  & \vdots  & \ddots  & \vdots  \\ 1 & x_{N1} & \cdots  & x_{Np} \end{bmatrix} = \begin{bmatrix} 1 & x_1^T \\ 1 & x_2^T \\ \vdots  & \vdots \\ 1 & x_N^T  \end{bmatrix}
-\end{aligned}$$
+\end{aligned}
 
 where $X$ is a $N \times (p+1)$ matrix and 
 
-$$\begin{aligned}
+\begin{aligned}
 \mathbf{X}^T = \begin{bmatrix}
 1 & 1 & \cdots  & 1 \\
 x_{11} & x_{21} & \cdots  & x_{N1} \\
@@ -86,12 +89,12 @@ x_{1p} &  x_{2p}& \cdots  & x_{Np}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
 \end{bmatrix} 
-\end{aligned}$$
+\end{aligned}
 
 
 where $X^T$ is a $(p+1) \times N$ matrix. It follows that 
 
-$$\begin{aligned}
+\begin{aligned}
 \mathbf{X}^T\mathbf{X} &= \begin{bmatrix}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
@@ -106,42 +109,42 @@ N & \sum_{i=1}^N x_i^T \\
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & \sum_{i=1}^N x_i x_i^T 
 \end{bmatrix}
-\end{aligned}$$
+\end{aligned}
 
 which is a $(p+1)\times(p+1)$ dimension matrix. To rewrite $\sum_{i=1}^N x_i x_i^T$ consider the estimate of the pooled covariance matrix $\hat{\sum}$ given by the formula
 
-$$\begin{aligned}
+\begin{aligned}
 \hat{\sum} = \frac{1}{N-K}\sum_{k=1}^{K} \sum_{i:G_i=k} (x_i-\mu_k)(x_i-\mu_k)^T
-\end{aligned}$$
+\end{aligned}
 
 
 
 For two classes ($K=2$) the formula becomes 
 
-$$\begin{aligned}
+\begin{aligned}
 \hat{\Sigma} &= \frac{1}{N-2} \left( \sum_{i:g_i=1} (x_i-\mu_1)(x_i-\mu_1)^T +  \sum_{i:g_i=2} (x_i-\mu_2)(x_i-\mu_2)^T \right) \\
 
 &= \frac{1}{N-2} \left( \sum_{i:g_i=1} x_i x_i^T - N_1\mu_1\mu_1^T + \sum_{i:g_i=2}  x_i x_i^T - N_2\mu_2\mu_2^T  \right) \\
-\end{aligned}$$
+\end{aligned}
 
 and solving this for $\sum_{i=1}^N x_i x_i^T$
 
-$$\begin{aligned}
+\begin{aligned}
 \sum_{i=1}^N x_i x_i^T = (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T 
-\end{aligned}$$
+\end{aligned}
 
 so $X^TX$ becomes 
 
-$$\begin{aligned}
+\begin{aligned}
 X^TX= \begin{bmatrix}
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T
 \end{bmatrix}
-\end{aligned}$$
+\end{aligned}
 
 We are given that our response for the first class is $-N/N_1$ and $N/N_2$ for the second class, where $N=N_1 + N_2$, so
 
-$$\begin{aligned}
+\begin{aligned}
 X^Ty &= \begin{bmatrix}
 1 & 1 & \cdots  & 1  \\
 x_1 & x_2 & \cdots & x_N
@@ -155,18 +158,18 @@ x_1 & x_2 & \cdots & x_N
 \end{bmatrix} \\
 &= \begin{bmatrix}0 \\ -N\mu_1+N\mu_2 \end{bmatrix}
 
-\end{aligned}$$
+\end{aligned}
 
 so 
 
-$$\begin{aligned}
+\begin{aligned}
 X^TX \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} &= X^Ty \\
 \begin{bmatrix}
 N & N_1\mu_1^T+N_2\mu_2^T \\
 N_1\mu_1+N_2\mu_2  & (N-2) \hat{\Sigma} + N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T
 \end{bmatrix} \begin{bmatrix} \beta_0 \\ \beta\end{bmatrix} &= \begin{bmatrix}0 \\ -N\mu_1+N\mu_2 \end{bmatrix}
 
-\end{aligned}$$
+\end{aligned}
 
 and 
 
@@ -180,7 +183,7 @@ Similarly,
 $$(N_1\mu_1 + N_2\mu_2)\beta_0+((N-2)\hat{\Sigma} + N_1\mu_1 \mu_1^T+N_2\mu_2\mu_2^T)\beta = N(\mu_2-\mu_1)$$
 Substituting in $\beta_0=-\frac{1}{N}(N_1\mu_1^T+N_2\mu_2^T)\beta$, the left side of the equation can be simplified as follows:
 
-$$\begin{aligned}
+\begin{aligned}
 (N_1\mu_1 + N_2\mu_2)(-\frac{1}{N}(N_1\mu_1^T+N_2\mu_2^T)\beta)+((N-2)\hat{\Sigma} + N_1\mu_1 \mu_1^T+N_2\mu_2\mu_2^T)\beta &= \\ 
 
 ((N-2)\hat{\Sigma} - \frac{N_1^2}{N}\mu_1\mu_1^T - \frac{2N_1N_2}{N}\mu_1\mu_2^T-\frac{N_2^2}{N}\mu_2\mu_2^T+N_1\mu_1\mu_1^T+ N_2\mu_2\mu_2^T)\beta &= \\
@@ -196,7 +199,7 @@ $$\begin{aligned}
 ((N-2)\hat{\Sigma}+\frac{N_1N_2}{N}(\mu_2-\mu_1)(\mu_2-\mu_1)^T)\beta 
 
 
-\end{aligned}$$
+\end{aligned}
 
 
 So, the solution $\hat{\beta}$ satisfies
@@ -209,9 +212,6 @@ $$\hat{\Sigma_\beta} = \frac{N_1N_2}{N_2}(\hat{\mu_2}-\hat{\mu_1})(\hat{\mu_2}-\
 
 
 ## Exercise 2. (ESL Ex. 4.1) – 5 pts
-Show how to solve the generalized eigenvalue problem max"aT B"a subject to max"aT W"a= 1 by transforming to a standard eigenvalue problem.
-[Hint: B is between-class covariance matrix and Wis within-class covariance matrix. The standard eigenvalue problem is to solve A"x= $\lambda$"x, where the solution vectors "x must be an eigenvector of the matrix A and $\lambda$ is its corresponding eigenvalue.]
-
 
 ### Solution:
 The Lagrangian form of the problem $max \  a^T\mathbf{B}a$ subject to $a^TWa=1$ is 
@@ -219,19 +219,19 @@ The Lagrangian form of the problem $max \  a^T\mathbf{B}a$ subject to $a^TWa=1$ 
 $$L(a, \lambda) = a^T\mathbf{B}a+\lambda(a^TWa-1)$$
 The partial derivatives with respect to $a$ and $\lambda$ are
 
-$$\begin{aligned}
+\begin{aligned}
 \frac{\delta L(a, \lambda)}{\delta a}=2\mathbf{B}a+2\lambda\mathbf{W}a=0 \\
 \frac{\delta L(a, \lambda)}{\delta \lambda}=a^TWa-1=0
-\end{aligned}$$
+\end{aligned}
 
 Solving the first equation for $\lambda a$
 
-$$\begin{aligned}
+\begin{aligned}
 2\mathbf{B}a+2\lambda\mathbf{W}a=0 \\
 \lambda\mathbf{W}a= - \mathbf{B}a \\
 \lambda a= - \mathbf{W}^{-1}\mathbf{B}a \\
 
-\end{aligned}$$
+\end{aligned}
 
 This is in eigen decomposition form and since we want to maximize the original quantity, we know that  $a$ must be the first eigenvector and $\lambda$ the corresponding eigenvalue to the matrix $-\mathbf{W}^{-1}\mathbf{B}$
 
