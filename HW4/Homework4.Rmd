@@ -1,0 +1,263 @@
+---
+title: "STAT 760 Homework 4"
+author: "Natalie Bladis and Johnathan Lomas"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+# Exercise 1. (ESL Ex 4.4)– 5 pts
+Consider the multilogit model with K classes (4.17). Let βbe the $(p+1)(K−1)$-vector consisting of all the coefficients. Define a suitably enlarged version of the input vector x to accommodate this vectorized coefficient matrix. Use the Newton-Raphson algorithm for maximizing the multinomial log-likelihood, and describe how you would implement this algorithm. (Hint: assume the result of Newton-Raphson algorithm for maximizing the binomial log-likelihood is already known.)
+
+## Solutions:
+A suitable enlarged input vector $x$ to accommodate the vectorized coefficient matrix can be defined as 
+
+$$\begin{aligned}
+(1, x^T) \to x^T
+\end{aligned}$$
+
+which enlarges each observation by inserting a constant at the first position. Therefore, we have
+
+$$\begin{aligned}
+P(G=k|X=x) &= \frac{exp(\beta_k^Tx)}{1+\sum_{l=1}^{K-1}exp(\beta_l^Tx)}, k=1,...,K-1 \\
+ \\
+P(G=K|X=x) &= \frac{1}{1+\sum_{l=1}^{K-1}exp(\beta_l^Tx)}
+\end{aligned}$$
+
+where each $\beta_k \in \mathbb{R}^{p+1}$ for $k = 1,..., K-1$. Let $\beta$ be a $(p+1)(K-1)$ vector defined as $\beta = \{ \beta_1^T, ...,\beta_{K-1}^T \}$ and let $p_k(x;\beta)=P(G=k|X=x)$. 
+
+Then the log-likelihood for the $N$ observation is 
+
+$$\begin{aligned}
+l(\beta)= \sum_{i=1}^N logp_{gi}(x_i;\beta).
+\end{aligned}$$
+
+Coding the class from $1$ to $K$, $l(\beta)$ can be written as 
+$$\begin{aligned}
+l(\beta) &= \sum_{i=1}^{N} \left( \sum_{k=1}^{K-1} 1(y_i=k) \text{log}  p_k(x_i; \beta) -1(y_i=K)log(1 + \sum_{l=1}^{K-1}e^{\beta_l^T x_i}) \right) \\
+&= \sum_{i=1}^{N} \left( \sum_{k=1}^{K-1} 1(y_i=k)  \beta_k^T x_i -log(1+\sum_{l=1}^{K-1}e^{\beta_l^T x_i}) \right)
+\end{aligned}$$
+
+To maximize the log-likelihood, we set its derivatives to zero, and these are the score equations for $K=1,...,K-1$, 
+
+$$\begin{aligned}
+\frac{d l(\beta)}{d \beta_k} &= \sum_{i=1}^{N}(1(y_i=k)x_i - \frac{x_ie^{\beta_k^T x_i}}{1+\sum_{l=1}^{K-1}e^{\beta_l^T x_i}}) \\
+&= \sum_{i=1}^{N}x_i(1(y_i=k) - \frac{e^{\beta_k^T x_i}}{1+\sum_{l=1}^{K-1}e^{\beta_l^T x_i}}) \in \mathbb{R}^{p+1}
+\end{aligned}$$
+
+and all of the derivatives can be written as a vector as follows:
+
+$$\begin{aligned}
+\frac{d l(\beta)}{d \beta} &= \begin{bmatrix} \frac{d l(\beta)}{d \beta_1} \\
+\vdots \\
+\frac{d l(\beta)}{d \beta_{K-1}}
+\end{bmatrix} \in \mathbb{R}^{(p+1)(K-1)}
+\end{aligned}$$
+
+To use Newtons Method, we need the second derivative of $\beta$. The second order derivatives of $\beta$ for $k \neq j \in \{1,...,K-1\}$ are 
+
+$$\begin{aligned}
+\frac{ d^2 l (\beta) }{d \beta_k d \beta_j^T} &= \sum_{i=1}^N x_i (- \frac{e^{\beta_j^T x_i} x_i^T e^{\beta_k^T x_i}}{(1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i })^2}) \\
+
+&= - \sum_{i=1}^{N} x_i x_i^T \frac{e^{\beta_k^T x_i}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \cdot \frac{e^{\beta_j^T x_i}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \\
+
+&= - \sum_{i=1}^{N}x_i x_i^T p_k(x_i;\beta) p_j(x_i;\beta)
+\end{aligned}$$
+
+The second derivatives of $\beta$ for $k \in \{ 1, ..., K-1\}$ are 
+
+$$\begin{aligned}
+\frac{ d^2 l (\beta) }{d \beta_k d \beta_k^T} &= \sum_{i=1}^N x_i (- \frac{e^{\beta_k^T} x_i^T}{(1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i })^2}) \\
+
+&= - \sum_{i=1}^{N} x_i x_i^T \frac{e^{\beta_k^T}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \cdot \frac{1}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \\
+
+&= - \sum_{i=1}^{N}x_i x_i^T p_k(x_i;\beta) p_k^c(x_i;\beta)
+\end{aligned}$$
+
+where $p_k^c(x_i;\beta) = 1- p_k(x_i; \beta)$
+
+
+So the second derivative of $\beta $ can be written as the following matrix:
+
+$$\begin{aligned}
+\frac{ d^2 l (\beta) }{d \beta d \beta^T} &= \begin{bmatrix}
+\frac{ d^2 l (\beta) }{d \beta_1 d \beta_1^T} & \frac{ d^2 l (\beta) }{d \beta_1 d \beta_2^T} & \cdots &  \frac{ d^2 l (\beta) }{d \beta_1 d \beta_{K-1}^T} \\
+\frac{ d^2 l (\beta) }{d \beta_2 d \beta_1^T} & \frac{ d^2 l (\beta) }{d \beta_2 d \beta_2^T} & \cdots &  \frac{ d^2 l (\beta) }{d \beta_2 d \beta_{K-1}^T} \\
+\vdots & \vdots & \ddots &  \vdots\\
+\frac{ d^2 l (\beta) }{d \beta_{K-1} d \beta_1^T} & \frac{ d^2 l (\beta) }{d \beta_{K-1} d \beta_2^T} & \cdots & \frac{ d^2 l (\beta) }{d \beta_{K-1} d \beta_{K-1}^T}
+\end{bmatrix} \in \mathbb{R}^{(K-1)(p+1) \times (K-1)(p+1)}
+\end{aligned}$$
+
+Starting with $\beta^{old}$, a single Newton update is
+
+$$\begin{aligned}
+\beta^{new} = \beta^{old}- (\frac{d^2l(\beta)}{d\beta d\beta^T})^{-1}\frac{dl(\beta)}{d\beta}
+\end{aligned}$$
+
+where the derivatives are evaluated at $\beta^{old}$. Next, the score and the Hessian written in matrix notation as outlined in the textbook extended for K classes are as follows:
+
+$$\begin{aligned}
+\textbf{y}_i = \begin{bmatrix} \textbf{1}(y_1 = k) \\ \textbf{1}(y_2 = k) \\ \vdots \\ \textbf{1}(y_N = k) \end{bmatrix}, \mathbf{X} = \begin{bmatrix} x_1^T \\ x_2^T \\ \vdots \\ x_N^T \end{bmatrix} , \textbf{p}_k = \begin{bmatrix} p_k(x_1; \beta) \\ p_k(x_2; \beta) \\ \vdots \\ p_k(x_N; \beta) \end{bmatrix}
+\end{aligned}$$
+
+
+This allows us to write the first derivative of the log-likelihood function as 
+$$\begin{aligned}
+\frac{d l(\beta)}{d \beta_k} = \mathbf{X}^T(\mathbf{y}_k - \mathbf{p}_k)
+\end{aligned}$$
+
+If we let, 
+
+$$\begin{aligned}
+\mathbf{y} = \begin{bmatrix}
+        \mathbf{y}_1\\
+        \mathbf{y}_2\\
+        \vdots\\
+        \mathbf{y}_{K-1}
+    \end{bmatrix}\ \ \text{and} \ \ 
+    \mathbf{p} = \begin{bmatrix}
+        \mathbf{p}_1\\
+        \mathbf{p}_2\\
+        \vdots\\
+        \mathbf{p}_{K-1}
+    \end{bmatrix}
+    
+    \mathbf{X}^* = \begin{bmatrix}
+        \mathbf{X}^T & 0 & \cdots & 0\\
+        0 & \mathbf{X}^T & \cdots & 0\\
+        \vdots & \vdots & \ddots & \vdots\\
+        0 & 0 & \cdots & \mathbf{X}^T
+     \end{bmatrix}  
+     
+\end{aligned}$$
+then
+$$\begin{aligned}
+\frac{dl(\beta)}{d \beta} = \mathbf{X}^*(\mathbf{y}- \mathbf{p})
+\end{aligned}$$
+
+Then in order to write the second derivative of $\beta$ in this form we must define two more matrices $\mathbf{Q_k}$ and $\mathbf{P_k}$ for $k = \{ 1,... K-1\}$ as follows:
+$$\begin{aligned}
+    \mathbf{Q}_k =  \begin{bmatrix}
+        p_k(x_1;\beta)p_k^c(x_1;\beta) & 0 & \cdots & 0\\
+        0 & p_k(x_2;\beta)p_k^c(x_2\beta) & \cdots & 0\\
+        \vdots & \vdots & \ddots & \vdots\\
+        0 & 0 & \cdots & p_k(x_N; \beta)p_k^c(x_N;\beta)
+    \end{bmatrix}
+\end{aligned}$$
+and 
+$$\begin{aligned}
+    \mathbf{P}_k =  \begin{bmatrix}
+        p_k(x_1;\beta) & 0 & \cdots & 0\\
+        0 & p_k(x_2;\beta) & \cdots & 0\\
+        \vdots & \vdots & \ddots & \vdots\\
+        0 & 0 & \cdots & p_k(x_N; \beta)
+    \end{bmatrix}
+\end{aligned}$$
+Then 
+$$\begin{aligned}
+\frac{d^2 l(\beta)}{d \beta_kd\beta^T_k} = - \mathbf{X}^T\mathbf{Q}_k\mathbf{X}
+\end{aligned}$$
+and for $k\neq j \in \{1,..., K-1\}$
+
+$$\begin{aligned}
+\frac{d^2 l(\beta)}{d \beta_k d\beta^T_j} = - \mathbf{X}^T\mathbf{P}_k\mathbf{P}_j\mathbf{X}
+\end{aligned}$$
+
+And therefore, combining the last two matrices we have,
+$$\begin{aligned}
+    \frac{d^2 l(\beta)}{d\beta d\beta^T}
+    =
+    -\begin{bmatrix}
+    \mathbf{X}^T\mathbf{Q}_1\mathbf{X}& \mathbf{X}^T\mathbf{P}_1\mathbf{P}_2\mathbf{X}&\cdots&\mathbf{X}^T\mathbf{P}_{1}\mathbf{P}_{K-1}\mathbf{X}\\    
+    \mathbf{X}^T\mathbf{P}_2\mathbf{P}_2\mathbf{X}& \mathbf{X}^T\mathbf{Q}_2\mathbf{X}&\cdots&\mathbf{X}^T\mathbf{P}_{2}\mathbf{P}_{K-1}\mathbf{X}\\
+    \vdots & \vdots &\ddots &\vdots\\
+    \mathbf{X}^T\mathbf{P}_{K-1}\mathbf{P}_1\mathbf{X}& \mathbf{X}^T\mathbf{P}_{K-1}\mathbf{P}_2\mathbf{X}&\cdots&\mathbf{X}^T\mathbf{Q}_{K-1}\mathbf{X}    
+    \end{bmatrix}
+\end{aligned}$$
+If we let 
+
+$$\begin{aligned}
+    \mathbf{W} = \begin{bmatrix}
+    \mathbf{Q}_1& \mathbf{P}_1\mathbf{P}_2&\cdots&\mathbf{P}_{1}\mathbf{P}_{K-1}\\  
+    \mathbf{P}_2\mathbf{P}_2& \mathbf{Q}_2&\cdots&\mathbf{P}_{2}\mathbf{P}_{K-1}\\
+    \vdots & \vdots &\ddots &\vdots\\
+    \mathbf{P}_{K-1}\mathbf{P}_1& \mathbf{P}_{K-1}\mathbf{P}_2&\cdots&\mathbf{Q}_{K-1}  
+    \end{bmatrix}
+\end{aligned}$$
+
+Then the Hessian equaiton for the second derivative can be rewritten as 
+
+$$\begin{aligned}
+\frac{d^2 l(\beta)}{d\beta d\beta^T} = - \mathbf{X}^{*T}\mathbf{W}\mathbf{X}^*
+\end{aligned}$$
+
+Therefore, the Newton step can be written as
+
+$$\begin{aligned}
+\beta^{\text{new}} &= \beta^{\text{old}} + (\textbf{X*}^T\textbf{W}\textbf{X*})^{-1}\textbf{X}^T(\textbf{y}-\textbf{p}) \\
+    &=(\textbf{X*}^T\textbf{W}\textbf{X*})^{-1}\textbf{X*}^T\textbf{W}(\textbf{X*}\beta^{\text{old}} + \textbf{W}^{-1}(\textbf{y}-\textbf{p})) \\
+    &=(\textbf{X*}^T\textbf{W}\textbf{X*})^{-1}\textbf{X*}^T\textbf{W}\textbf{z}
+\end{aligned}$$
+
+Similar to in the textbook, in the second and third line we have re-expressed the Newton step as a weighted least squares step, with the response
+
+$$\begin{aligned}
+\textbf{z} = \boldsymbol{X}^*\beta^{\text{old}} + \textbf{W}^{-1}(\textbf{y}-\textbf{p})
+\end{aligned}$$
+
+# Exercise 2. (ESL Ex 4.5) – 5 pts
+Consider a two-class logistic regression problem with $x \in R$. Characterize the maximum-
+likelihood estimates of the slope and intercept parameter if the sample $x_i$ for the two classes are
+separated by a point $x_0 \in R$ and visualize this case.
+
+## Solutions:
+Let 
+
+\begin{aligned}
+y_i = 
+
+\begin{cases}
+        1 & \text{if } x_i > x_0\\
+        0 & \text{if } x_i < x_0
+    \end{cases}
+\end{aligned}
+
+The log-likelihood for $N$ observations is 
+
+\begin{aligned}
+l(\beta) &= \sum_{i-1}^N [y_i \beta^T x_i-log(1+ e^{\beta^T x_i})] \\
+&= \sum_{i-1}^N[y_i (\beta_0+\beta_1x_i)-log(1+ e^{\beta_0+\beta_1x_i})] \\
+&= \sum_{i-1}^N[y_i (\beta_0+\beta_1x_0+\beta_1(x_i-x_0))-log(1+ e^{\beta_0+\beta_1x_0+\beta_1(x_i-x_0)})]
+\end{aligned}
+
+
+Let $\beta_0 = -\beta_1 x_0$ then the equation above can become
+
+\begin{aligned}
+l(\beta) &= \sum_{i-1}^N[y_i (-\beta_1 x_0+\beta_1x_0+\beta_1(x_i-x_0))-log(1+ e^{-\beta_1 x_0+\beta_1x_0+\beta_1(x_i-x_0)})] \\
+
+&= \sum_{i-1}^N[y_i (\beta_1(x_i-x_0))-log(1+ e^{\beta_1(x_i-x_0)})] \\
+
+
+
+\end{aligned}
+
+Then considering each case for $y_i$,
+
+\begin{aligned}
+l(\beta) &= \sum_{i:x_i<x_0} [-log(1+e^{\beta_1(x_i-x_0)})] + \sum_{i:x_i>x_0} [\beta_1(x_i-x_0)-log(1+e^{\beta_1(x_i-x_0)})].
+\end{aligned}
+
+
+Visualizing this case, to maximize the log-likelihood let $\beta_1 \to \infty$, the first term $\sum_{i:x_i<x_0} [-log(1+e^{\beta_1(x_i-x_0)})] \to 0$ and the second term $\sum_{i:x_i>x_0}[\beta_1(x_i-x_0)-log(1+e^{\beta_1(x_i-x_0)})] \to \infty$.So there is no maximum of the log likelihood function. 
+
+
+# Exercise 3. (Programming) – 20 pts
+Program logistic regression for the South-African Heart disease dataset using iterative least
+squares, as explained in the book. Please use bootstrap method to get the mean value and variance
+of the coefficient. The South African Heart Disease data are available from the book website
+https://www.hastie.su.domains/ElemStatLearn/.
+
+## Solutions:
