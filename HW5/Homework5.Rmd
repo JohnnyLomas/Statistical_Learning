@@ -87,12 +87,6 @@ then according to equation 11.6 in the text
     g_k(X) &= \frac{\exp(\beta_{0k} + \beta_k^TX)}{\sum_{l=1}^K\exp(\beta_{0l} + \beta_l^TX)} 
 \end{eqnarray}
 
-If we normalize these probabilities by 
-
-\begin{equation}
-    f_k(x) \leftarrow f_k(x)/f_K(x) \cdot \frac{1}{1+\sum_{l=1}^{K-1}\exp(\beta_{0l} + \beta_l^TX)},\ k=1,...,K   
-\end{equation}
-
 we get exactly the multinomial logistic model in Chapter 4. 
 
 # Exercise 4. (Programming) – 24 pts
