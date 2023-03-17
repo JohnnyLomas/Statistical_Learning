@@ -7,6 +7,11 @@ output:
   pdf_document: default
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+use_condaenv("base")
+```
 
 # Exercise 1. (ESL Ex 4.4)– 5 pts
 Consider the multilogit model with K classes (4.17). Let βbe the $(p+1)(K−1)$-vector consisting of all the coefficients. Define a suitably enlarged version of the input vector x to accommodate this vectorized coefficient matrix. Use the Newton-Raphson algorithm for maximizing the multinomial log-likelihood, and describe how you would implement this algorithm. (Hint: assume the result of Newton-Raphson algorithm for maximizing the binomial log-likelihood is already known.)
@@ -35,6 +40,7 @@ l(\beta)= \sum_{i=1}^N logp_{gi}(x_i;\beta).
 \end{aligned}$$
 
 Coding the class from $1$ to $K$, $l(\beta)$ can be written as 
+
 $$\begin{aligned}
 l(\beta) &= \sum_{i=1}^{N} \left( \sum_{k=1}^{K-1} 1(y_i=k) \text{log}  p_k(x_i; \beta) -1(y_i=K)log(1 + \sum_{l=1}^{K-1}e^{\beta_l^T x_i}) \right) \\
 &= \sum_{i=1}^{N} \left( \sum_{k=1}^{K-1} 1(y_i=k)  \beta_k^T x_i -log(1+\sum_{l=1}^{K-1}e^{\beta_l^T x_i}) \right)
@@ -58,23 +64,23 @@ $$\begin{aligned}
 
 To use Newtons Method, we need the second derivative of $\beta$. The second order derivatives of $\beta$ for $k \neq j \in \{1,...,K-1\}$ are 
 
-$$\begin{aligned}
+\begin{aligned}
 \frac{ d^2 l (\beta) }{d \beta_k d \beta_j^T} &= \sum_{i=1}^N x_i (- \frac{e^{\beta_j^T x_i} x_i^T e^{\beta_k^T x_i}}{(1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i })^2}) \\
 
 &= - \sum_{i=1}^{N} x_i x_i^T \frac{e^{\beta_k^T x_i}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \cdot \frac{e^{\beta_j^T x_i}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \\
 
 &= - \sum_{i=1}^{N}x_i x_i^T p_k(x_i;\beta) p_j(x_i;\beta)
-\end{aligned}$$
+\end{aligned}
 
 The second derivatives of $\beta$ for $k \in \{ 1, ..., K-1\}$ are 
 
-$$\begin{aligned}
+\begin{aligned}
 \frac{ d^2 l (\beta) }{d \beta_k d \beta_k^T} &= \sum_{i=1}^N x_i (- \frac{e^{\beta_k^T} x_i^T}{(1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i })^2}) \\
 
 &= - \sum_{i=1}^{N} x_i x_i^T \frac{e^{\beta_k^T}}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \cdot \frac{1}{1+ \sum_{l=1}^{K-1}e^{\beta_l^T x_i }} \\
 
 &= - \sum_{i=1}^{N}x_i x_i^T p_k(x_i;\beta) p_k^c(x_i;\beta)
-\end{aligned}$$
+\end{aligned}
 
 where $p_k^c(x_i;\beta) = 1- p_k(x_i; \beta)$
 
@@ -102,15 +108,15 @@ $$\begin{aligned}
 \textbf{y}_i = \begin{bmatrix} \textbf{1}(y_1 = k) \\ \textbf{1}(y_2 = k) \\ \vdots \\ \textbf{1}(y_N = k) \end{bmatrix}, \mathbf{X} = \begin{bmatrix} x_1^T \\ x_2^T \\ \vdots \\ x_N^T \end{bmatrix} , \textbf{p}_k = \begin{bmatrix} p_k(x_1; \beta) \\ p_k(x_2; \beta) \\ \vdots \\ p_k(x_N; \beta) \end{bmatrix}
 \end{aligned}$$
 
-
 This allows us to write the first derivative of the log-likelihood function as 
+
 $$\begin{aligned}
 \frac{d l(\beta)}{d \beta_k} = \mathbf{X}^T(\mathbf{y}_k - \mathbf{p}_k)
 \end{aligned}$$
 
 If we let, 
 
-$$\begin{aligned}
+\begin{aligned}
 \mathbf{y} = \begin{bmatrix}
         \mathbf{y}_1\\
         \mathbf{y}_2\\
@@ -130,14 +136,16 @@ $$\begin{aligned}
         \vdots & \vdots & \ddots & \vdots\\
         0 & 0 & \cdots & \mathbf{X}^T
      \end{bmatrix}  
-     
-\end{aligned}$$
+\end{aligned}
+
 then
+
 $$\begin{aligned}
 \frac{dl(\beta)}{d \beta} = \mathbf{X}^*(\mathbf{y}- \mathbf{p})
 \end{aligned}$$
 
 Then in order to write the second derivative of $\beta$ in this form we must define two more matrices $\mathbf{Q_k}$ and $\mathbf{P_k}$ for $k = \{ 1,... K-1\}$ as follows:
+
 $$\begin{aligned}
     \mathbf{Q}_k =  \begin{bmatrix}
         p_k(x_1;\beta)p_k^c(x_1;\beta) & 0 & \cdots & 0\\
@@ -146,7 +154,9 @@ $$\begin{aligned}
         0 & 0 & \cdots & p_k(x_N; \beta)p_k^c(x_N;\beta)
     \end{bmatrix}
 \end{aligned}$$
+
 and 
+
 $$\begin{aligned}
     \mathbf{P}_k =  \begin{bmatrix}
         p_k(x_1;\beta) & 0 & \cdots & 0\\
@@ -155,10 +165,13 @@ $$\begin{aligned}
         0 & 0 & \cdots & p_k(x_N; \beta)
     \end{bmatrix}
 \end{aligned}$$
+
 Then 
+
 $$\begin{aligned}
 \frac{d^2 l(\beta)}{d \beta_kd\beta^T_k} = - \mathbf{X}^T\mathbf{Q}_k\mathbf{X}
 \end{aligned}$$
+
 and for $k\neq j \in \{1,..., K-1\}$
 
 $$\begin{aligned}
@@ -166,6 +179,7 @@ $$\begin{aligned}
 \end{aligned}$$
 
 And therefore, combining the last two matrices we have,
+
 $$\begin{aligned}
     \frac{d^2 l(\beta)}{d\beta d\beta^T}
     =
@@ -176,6 +190,7 @@ $$\begin{aligned}
     \mathbf{X}^T\mathbf{P}_{K-1}\mathbf{P}_1\mathbf{X}& \mathbf{X}^T\mathbf{P}_{K-1}\mathbf{P}_2\mathbf{X}&\cdots&\mathbf{X}^T\mathbf{Q}_{K-1}\mathbf{X}    
     \end{bmatrix}
 \end{aligned}$$
+
 If we let 
 
 $$\begin{aligned}
@@ -187,7 +202,7 @@ $$\begin{aligned}
     \end{bmatrix}
 \end{aligned}$$
 
-Then the Hessian equaiton for the second derivative can be rewritten as 
+Then the Hessian equation for the second derivative can be rewritten as
 
 $$\begin{aligned}
 \frac{d^2 l(\beta)}{d\beta d\beta^T} = - \mathbf{X}^{*T}\mathbf{W}\mathbf{X}^*
@@ -261,3 +276,84 @@ of the coefficient. The South African Heart Disease data are available from the 
 https://www.hastie.su.domains/ElemStatLearn/.
 
 ## Solutions:
+
+```{python}
+import pandas as pd
+import numpy as np
+import math
+import random
+
+def readData(file):
+	data = pd.read_csv(file, sep=",")
+	
+	# Recode 'famhist' as dummy variable
+	data["famhist"] = data["famhist"].replace({"Present":1, "Absent":0})
+
+	data = np.column_stack([np.ones(len(data)) ,data.iloc[:,range(1,11)].to_numpy()])
+	return data
+
+def computeProbabilities(x, b):
+	# x and b are assumed to be two column vectors
+	# of equal length
+	eq = b.T.dot(x)
+	prob = math.exp(eq)/(1 + math.exp(eq))
+	return(prob)
+
+def fitLogistic(x_data, y_data, b_old, maxIter):
+	iter = 0
+	run = True
+	while run == True and iter < maxIter:
+	
+		# Compute vetor of fitted probabilities (p)
+		p = np.array([computeProbabilities(x_vec, b_old) for x_vec in x_data])
+
+		# Compute the weights matrix (w)
+		weights = p*(1-p)
+		w = np.identity(len(x_data))
+
+		# Compute the newton-raphson step
+		b_new = b_old + np.linalg.inv(x_data.T.dot(w).dot(x_data)).dot(x_data.T).dot(y_data - p)
+		iter += 1
+
+		# Check convergence threshold
+		run = sum(abs(b_new-b_old) >= threshold) > 0
+		if not run:
+			break
+		else: 
+			b_old = b_new
+
+	if iter == maxIter and run == True:
+		print(f"Fitting stopped after max iterations: {maxIter}...")
+	#else:
+	#	print(f"Fitting complete after {iter} iterations.")
+
+	return(b_new)
+
+data = readData("SAheart.data")
+
+## Set initial value for parameters
+param_num = np.shape(data)[1]-1
+b_old = np.zeros([param_num])
+
+## Set threshold for convergence
+threshold = 0.000001
+maxIter = 10000
+
+## Set bootstrap parameters
+n_iter = 100
+sample_n = math.ceil(len(data)*.75)
+
+## Perform bootstrap calculations
+betas = np.zeros(shape=(n_iter, param_num))
+for i in range(n_iter):
+	sample = np.array(random.choices(data, k=sample_n))
+	b_hat = fitLogistic(sample[:, 0:10], sample[:, 10], b_old, maxIter)
+	betas[i,:] = b_hat
+
+results = pd.DataFrame({"Parameter": ["Intercept", "sbp","tobacco","ldl","adiposity","famhist","typea","obesity","alcohol","age"],
+						"Mean": np.mean(betas, axis=0),
+						"Std": np.std(betas, axis = 0)})
+
+print(f"Parameter stats with {n_iter} bootstraps:")
+print(results)
+```
