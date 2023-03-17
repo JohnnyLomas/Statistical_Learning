@@ -120,8 +120,8 @@ class vanilla_network:
         self.output.backward(val)
         
         # Set the forward and backward values of the single error unit
-        self.loss.setF(-(self.y*math.log(self.output.forward_value + 0.0000000001))-((1-self.y)*math.log(1.00000001-self.output.forward_value)))
-        self.loss.setB((-((self.y-1)/(1.00000001-self.output.forward_value))-(self.y/(self.output.forward_value+0.0000000001))))
+        self.loss.setF(-(self.y*math.log(self.output.forward_value))-((1-self.y)*math.log(1-self.output.forward_value)))
+        self.loss.setB((-((self.y-1)/(1-self.output.forward_value))-(self.y/(self.output.forward_value))))
     
     def backPropagate(self):
         i = 0
@@ -146,37 +146,76 @@ class vanilla_network:
         else:
             return 0
 
+def train(network, lr, epoch):
+    for e in range(epoch):
+        for net in network:
+            net.feedForward()
+            net.backPropagate()
+
+        #Update parameters
+        for i in range(len(beta)):
+            beta[i] = beta[i] - lr*sum([net.deltas_2[i] for net in network])
+
+        for i in range(np.shape(weight)[0]):
+            for j in range(np.shape(weight)[1]):
+                weight[i,j] = weight[i,j] - lr*sum([net.deltas_1[i,j] for net in network])
+
+        for net in network:
+            net.betas = beta
+            net.weights = weight
+
+        print(f"Loss: {sum([net.loss.forward_value for net in network])}: Epoch: {e}")
+    
+    return network
+
+# Trained with the following paramters
 # Set up the full network
+#data = generateData(123)
+#k = 16
+#weight = np.random.rand(3,k)-.5
+#beta = np.random.rand(k+1,1)-.5
+#full_network = [vanilla_network(np.array([x,y]), int(cl), k, weight, beta) for x,y,cl in zip(data["x"], data["y"], data["class"])]
+#train(full_network, 0.01, 8000)
+
+# Best set of weights found in training
+weight = np.array([[ -4.19584445,  -1.3282284 ,   1.79991726,   8.33938592,
+         -3.64002467,  -1.05884497,  -1.48570235,  -2.70382777,
+         -2.29875305,  -0.36100335,   5.76796037,  -0.72573879,
+        -11.62639023,   3.53568859,  -2.35604282,  -5.29186908],
+       [ -2.16333785,  -0.38780492,  -2.151737  , -16.8796751 ,
+         -1.35921074,  -0.37628216,  -1.61490221,  -1.94379884,
+         -2.0717545 ,  -1.12047354, -11.30073469, -13.22449552,
+        -20.31519359,  -5.55245362,  -5.37420254,  16.64365942],
+       [ -1.29929047,  -0.61740053,  -7.0485629 ,  -9.09659516,
+         -3.82470887,  -1.61270966,  -1.88196207,  -0.83052736,
+         -2.03595596,  -0.7696174 ,  -3.99344432,   4.49675539,
+         23.27561944, -22.74878959,  -0.3415429 ,  -7.91224088]])
+beta = np.array([[-4.86905244e+00],
+       [-1.47547109e-01],
+       [-3.61455607e+00],
+       [-4.81912171e+00],
+       [-2.45031449e+01],
+       [-3.36490646e-01],
+       [-2.98668916e+00],
+       [ 1.68455167e-02],
+       [ 5.35369528e-03],
+       [-9.08902934e-01],
+       [ 7.30305694e-02],
+       [ 2.00389972e+01],
+       [ 2.02808639e+01],
+       [ 1.15439848e+01],
+       [ 1.50317988e+01],
+       [ 2.00269466e+00],
+       [ 5.78280332e+00]])
+
+# Set up the full network with pre-trained weights
 data = generateData(123)
+
+# Plot training data
+plotData(data, "class")
+
+# Plot grid prediction
 k = 16
-lr  =0.01
-weight = np.random.rand(3,k)-.5
-beta = np.random.rand(k+1,1)-.5
-full_network = [vanilla_network(np.array([x,y]), int(cl), k, weight, beta) for x,y,cl in zip(data["x"], data["y"], data["class"])]
-
-for e in range(40):
-    for net in full_network:
-        net.feedForward()
-        net.backPropagate()
-
-    #Update parameters
-    for i in range(len(beta)):
-        beta[i] = beta[i] - lr*sum([net.deltas_2[i] for net in full_network])
-
-    for i in range(np.shape(weight)[0]):
-        for j in range(np.shape(weight)[1]):
-            weight[i,j] = weight[i,j] - lr*sum([net.deltas_1[i,j] for net in full_network])
-
-    for net in full_network:
-        net.betas = beta
-        net.weights = weight
-
-    print(f"Loss: {sum([net.loss.forward_value for net in full_network])}")
-
-prediction = [net.predict() for net in full_network]
-data["prediction"] = prediction
-plotData(data, "prediction")
-
 grid = np.zeros([10000,2])
 l = 0
 for i in range(100):
