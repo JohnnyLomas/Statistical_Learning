@@ -1,0 +1,99 @@
+---
+title: "STAT 760 Homework 5"
+author: "Natalie Bladis and Johnathan Lomas"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+---
+# Exercise 1. (ESL Ex 11.2)– 2 pts
+Consider a neural network for a quantitative outcome as in (11.5), using squared-error loss and identity output function gk(t) = t. Suppose that the weights αmfrom the input to hidden layer are nearly zero. Show that the resulting model is nearly linear in the inputs.
+
+
+## Solution:
+
+Let $\sigma (x) = \frac{1}{1+e^{-x}$ be the sigmoid activation function and $\mu(x) = \frac{1}{2} (1+x)$, then 
+
+$$\begin{aligned}
+lim_{x \to 0}\frac{\mu(x)}{\sigma(x)} &= lim_{x \to 0}\frac{1}{2} (1+x) (1+e^{-x}) \\
+&= lim_{x \to 0}\frac{1}{2} (1+e^{-x}+x+xe^{-x})
+&= 1
+\end{aligned}$$
+When the weights $\alpha_m$ from the input to hidden layer are nearly zero, then $\alpha_m^T X$ is also nearly zero. If a bias term is added to enlarge $X$ by adding a $1$ to the first position of each row of $X$, then $Z_m = \sigma(\alpha_m^T X) \sim \frac{1}{2}(1+\alpha_m^T X)$, which makes the resulting model nearly linear in $X$ becasue $g_k$ is the identity. 
+
+
+
+
+# Exercise 2. (ESL Ex 11.3) – 2 pts
+Derive the forward and backward propagation equations for the cross-entropy loss function. (Hint:
+Cross-entropy loss function can be found on ESL Page 309.)
+
+## Solution:
+The cross-entropy loss function is 
+$$\begin{aligned}
+R(\theta)=-\sum_{i=1}^N \sum_{k=1}^K y_{ik} log(f_k(x_i)),
+\end{aligned}$$
+
+and the corresponding classifier is $G(x)=\underset{k}{argmax} f_k(x)$.
+
+Let $z_{mi}=\sigma(\alpha_{0m}+\alpha_m^T x_i)$ as stated in the text equation (11.5) and let $z_i=(z_{1i},z_{2i},...,z_{Mi}). Then
+
+$$\begin{aligned}
+R(\theta) &=\sum_{i=1}^{N}R_i \\
+&= \sum_{i=1}^{N}\sum_{k=1}^{K}(-y_{ik}log(f_k(x_i))),
+\end{aligned}$$
+
+with derivatives
+
+$$\begin{aligned}
+    \frac{\partial R_i}{\partial \beta_{km}} &= -\frac{y_{ik}}{f_k(x_i)}g'_k(\beta_k^Tz_i)z_{mi},\\
+    \frac{\partial R_i}{\partial \alpha_{ml}} &= -\sum_{k=1}^K\frac{y_{ik}}{f_k(x_i)}g'_k(\beta_k^Tz_i)\beta_{km}\sigma'(\alpha_{0m} + \alpha_m^Tx_i)x_{il}
+\end{aligned}$$
+
+Given these derivatives, a gradient descent update at the (r + 1)st iteration has the form
+  
+$$\begin{aligned} 
+\beta_{km}^{(r+1)} &= \beta_{km}^{(r)} - \gamma_r\sum_{i=1}^N\frac{\partial R_i}{\partial \beta^{(r)}_{km}} \\ 
+\alpha_{ml}^{(r+1)} &= \alpha_{ml}^{(r)} - \gamma_r\sum_{i=1}^N\frac{\partial R_i}{\partial \alpha^{(r)}_{ml}}
+\end{aligned}$$
+
+where $\gamma_r$ is the learning rate. 
+
+$$\begin{aligned} 
+    \frac{\partial R_i}{\partial \beta_{km}} &= \delta_{ki}z_{mi} \\
+    \frac{\partial R_i}{\partial \alpha_{ml}} &= s_{mi}x_{il}
+\end{aligned}$$
+
+From their definitions, we have</p>
+\begin{equation}
+    s_{mi} = \sigma'(\alpha_{0m}+\alpha_m^Tx_i)\sum_{k=1}^K\beta_{km}\delta_{ki}
+\end{equation}
+<p>known as the <em>back-propagation equations.
+
+# Exercise 3. (ESL Ex 11.4) – 2 pts
+Consider a neural network for a Kclass outcome that uses cross-entropy loss. If the network has no
+hidden layer, show that the model is equivalent to the multinomial logistic model described in Chapter 4.
+
+
+## Solution:
+If there are no hidden layers, then the equations for 11.5 in the text become 
+
+\begin{aligned}
+    T_k &= \beta_{0k} + \beta_k^TX, \ k=1,...,K \text{ and }  \\
+    f_k(X) &= g_k(X) \text{ for } k=1,...,K
+\end{aligned}
+then according to equation 11.6 in the text
+
+\begin{eqnarray}
+    g_k(X) &= \frac{\exp(\beta_{0k} + \beta_k^TX)}{\sum_{l=1}^K\exp(\beta_{0l} + \beta_l^TX)} 
+\end{eqnarray}
+
+we get exactly the multinomial logistic model in Chapter 4. 
+
+# Exercise 4. (Programming) – 24 pts
+In a unit square, generate 300 data points for Class A and 300 data points for Class B. There are three
+circles with 30%, 20% and 10% area of the unit square containing Class B. Write a computer programming
+to classify two classes using Backpropagation Method with 3 layers (input, hidden and output layer).
+Then for a discrete grid-pixelation with a suitable resolution, test all the pixels of the graph and show your
+results in a graph. (Do not use library for backpropagation.)
+
+
