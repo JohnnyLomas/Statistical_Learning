@@ -1,0 +1,219 @@
+---
+title: "STAT 760 Homework 5"
+author: "Natalie Bladis and Johnathan Lomas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+use_condaenv("ml")
+```
+
+# Exercise 1.
+Implement a linear regression on California 1990 Housing Value dataset via neural network by PyTorch without nn.Module. Write your own loss function and forward function. The data Housing.csv can be downloaded from the website https://www.kaggle.com/datasets/harrywang/housing.
+
+```{python}
+import pandas as pd
+import numpy as np
+import torch
+from torch.autograd import Variable
+
+# Load the data from CSV
+housing_data = pd.read_csv("/Users/ntb3/Documents/STAT_760_Statistical_Learning/CaliforniaHousing/cal_housing.data", header=None)
+housing_data=(housing_data-housing_data.mean())/housing_data.std()
+
+def mse_loss(y_pred, y_true):
+    return torch.mean((y_pred - y_true) ** 2)
+
+def forward(x, w, b):
+    return torch.matmul(x, w) + b
+    #return w.data*x.data + b.data   
+
+
+features = housing_data.iloc[:, :-1].values
+target = housing_data.iloc[:, -1].values
+
+
+
+x = torch.from_numpy(features).float() # Convert the data to PyTorch tensors
+y = torch.from_numpy(target).float()
+
+y = y.reshape(-1, 1) # Reshape the target variable to be a 2D tensor
+
+
+# Define the number of input features
+num_features = features.shape[1]
+
+# Initialize the weights and biases
+w = torch.randn(num_features, 1, requires_grad=True)
+b = torch.randn(1, requires_grad=True)
+
+# Define the learning rate and number of epochs
+learning_rate = 0.01
+num_epochs = 1000
+
+# Train the model
+for epoch in range(num_epochs):
+    # Forward pass
+    y_pred = forward(x, w, b)
+    loss = mse_loss(y_pred, y)
+    
+    # Backward pass
+    loss.backward()
+    
+    w.data = w.data - learning_rate*w.grad.data
+    b.data = b.data - learning_rate*b.grad.data
+        
+    # Reset gradients to zero
+    w.grad.zero_()
+    b.grad.zero_()
+        
+    # Print the loss every 100 epochs
+    #if (epoch+1) % 100 == 0:
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+
+
+print(f"Weights: \n {w.data}")
+print(f"Intercept: \n {b.data}")
+
+
+```
+
+# Exercise 2.
+Write a Python programming to classify 7 classes from the CIFAR-10 dataset. The seven classes are automobile (1), cat (3), dog (5), frog (6), horse (7), ship (8), and truck (9). Please use the PyTorch library to model your neural network with nn.Module and show the accuracy of each class and the total accuracy.
+```{python}
+from torchvision import datasets, transforms
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+data_path = '/Users/jslomas/Box/STAT_760/Statistical_Learning/HW6'
+
+#Classes: automobile (1), cat (3), dog (5), frog (6), horse (7), ship (8), and truck (9).
+classes = [1,3,5,6,7,8,9]
+label_map = {1:0,3:1,5:2,6:3,7:4,8:5,9:6}
+
+# Load cifar10 training data
+cifar10 = datasets.CIFAR10(data_path, 
+							train=True, 
+							download=True,
+							transform=transforms.ToTensor())
+
+# Filter cifar10 to retain only the 7 desired classes
+cifar7 = [(img, label_map[label]) for img, label in cifar10 if label in classes]
+
+# Compute stats for normalization
+imgs = torch.stack([img_t for img_t, _ in cifar7], dim=3)
+std = imgs.view(3,-1).std(dim=1).tolist()
+mean = imgs.view(3,-1).mean(dim=1).tolist()
+
+# Reload cifar10 with normalization
+cifar10 = datasets.CIFAR10(data_path, 
+							train=True, 
+							download=True,
+							transform=transforms.Compose([
+								transforms.ToTensor(),
+								transforms.Normalize(mean, std)]))
+
+# Filter cifar10 to retain only the 7 desired classes
+cifar7 = [(img, label_map[label]) for img, label in cifar10 if label in classes]
+
+# Load Cifar10 test data and filter for the 7 desired classes
+cifar10_val = datasets.CIFAR10(data_path, 
+							train=False, 
+							download=True,
+							transform=transforms.ToTensor())
+cifar7_val = [(img, label_map[label]) for img, label in cifar10_val if label in classes]
+
+# Set device
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+
+# Define the model
+class Net(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
+		self.conv2 = nn.Conv2d(16, 8, kernel_size=3, padding=1)
+		self.fc1 = nn.Linear(512, 32)
+		self.fc2 = nn.Linear(32, 7)
+
+	def forward(self, x):
+		out = F.max_pool2d(torch.tanh(self.conv1(x)), 2)
+		out = F.max_pool2d(torch.tanh(self.conv2(out)), 2)
+		out = out.view(-1, 512)
+		out = torch.tanh(self.fc1(out))
+		out = self.fc2(out)
+		return out
+
+model = Net().to(device)
+model.load_state_dict(torch.load(data_path
+                                        + '/cifar7.pt',
+                                        map_location=device))
+print(model)
+
+
+def train():
+	train_loader = torch.utils.data.DataLoader(cifar7, batch_size=64, shuffle=True)
+
+	learning_rate = 1e-3
+	optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+	loss_fn = nn.CrossEntropyLoss()
+	n_epochs = 1000
+ 
+	for epoch in range(1, n_epochs + 1):
+		loss_trn = 0.0
+		for imgs, labels in train_loader:
+			imgs, labels = imgs.to(device), labels.to(device)
+			outputs = model(imgs)
+			loss = loss_fn(outputs, labels)
+ 
+			optimizer.zero_grad()
+			loss.backward()
+			optimizer.step()
+			loss_trn += loss.item()
+  
+		if epoch == 1 or epoch % 10 == 0:
+			print(f'Epoch {epoch}, Training loss {loss_trn/len(train_loader)}')
+
+def predict():
+	val_loader = torch.utils.data.DataLoader(cifar7_val, batch_size=64, shuffle=False)
+
+	pred_stats = {
+    	0:{"total":0, "correct":0, "class":"automobile"},
+    	1:{"total":0, "correct":0, "class":"cat"},
+    	2:{"total":0, "correct":0, "class":"dog"},
+    	3:{"total":0, "correct":0, "class":"frog"},
+    	4:{"total":0, "correct":0, "class":"horse"},
+    	5:{"total":0, "correct":0, "class":"ship"},
+    	6:{"total":0, "correct":0, "class":"truck"}
+	}
+
+	total = 0
+	correct = 0
+
+	with torch.no_grad():
+		for imgs, labels in val_loader:
+			imgs, labels = imgs.to(device), labels.to(device)
+			batch_size = imgs.shape[0]
+			outputs = model(imgs)
+			_, predicted = torch.max(outputs, dim=1)
+			total += labels.shape[0]
+			correct += int((predicted == labels).sum())
+			for i in range(len(labels.tolist())):
+				pred_stats[labels[i].item()]["total"] += 1
+				if predicted[i].item() == labels[i].item():
+					pred_stats[labels[i].item()]["correct"] += 1
+
+	print(f"Total Accuracy: {correct / total}")
+	for cls in pred_stats.keys():
+		print(f"Class Accuracy [{pred_stats[cls]['class']}]: {pred_stats[cls]['correct']/pred_stats[cls]['total']}")
+
+predict()
+```
