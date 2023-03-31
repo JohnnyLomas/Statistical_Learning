@@ -43,6 +43,20 @@ cifar10_val = datasets.CIFAR10(data_path,
 							transform=transforms.ToTensor())
 cifar7_val = [(img, label_map[label]) for img, label in cifar10_val if label in classes]
 
+# Compute stats for normalization
+imgs = torch.stack([img_t for img_t, _ in cifar7_val], dim=3)
+std = imgs.view(3,-1).std(dim=1).tolist()
+mean = imgs.view(3,-1).mean(dim=1).tolist()
+
+# Reload cifar10 with normalization
+cifar10_val = datasets.CIFAR10(data_path, 
+							train=False, 
+							download=True,
+							transform=transforms.Compose([
+								transforms.ToTensor(),
+								transforms.Normalize(mean, std)]))
+cifar7_val = [(img, label_map[label]) for img, label in cifar10_val if label in classes]
+
 # Set device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
