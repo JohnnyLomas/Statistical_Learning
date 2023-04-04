@@ -1,0 +1,29 @@
+---
+title: "STAT 760 Homework 7"
+author: "Natalie Bladis and Johnathan Lomas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+use_condaenv("base")
+```
+
+
+```{r}
+install.packages("ISLR")
+library("ISLR")
+
+```
+
+
+```{r}
+head(Carseats)
+
+write.csv(Carseats, file = "carseats.csv", sep = "\t", col.names = TRUE, row.names = FALSE)
+
+```
