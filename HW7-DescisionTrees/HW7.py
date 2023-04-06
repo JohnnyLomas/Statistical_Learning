@@ -3,6 +3,8 @@ import numpy as np
 import math
 import random
 import itertools
+import pydot
+import uuid
 
 
 # Import Data 
@@ -30,13 +32,15 @@ carseats["sets"] = sets
 
 
 class node:
-    def __init__(self, parent = None, left = None, right = None):
+    def __init__(self, parent = None, left = None, right = None, graph = None):
         self.parent = parent
         self.left = left
         self.right = right
         self.desicionFeature = None
         self.desicionSplit = None
         self.data_type = None
+        self.graph = graph
+        self.label = str(uuid.uuid4())
 
     def bestSplitNumeric(self, data, response):
         quantiles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -89,6 +93,14 @@ class node:
             return "Go right" #TODO: Placeholder
         else:
             return "Go Left" #TODO: Placeholder
+    
+    def addToGraph(self, cur_label, parent_label):
+        if ((self.data_type == int) | (self.data_type == float)):
+            lab = f"{self.desicionFeature} > {self.desicionSplit}"
+        else:
+            lab = f"{self.desicionFeature} in {self.desicionSplit}"
+        tree_graph.add_node(pydot.Node(parent_label, shape="circle", label=lab))
+        tree_graph.add_edge(pydot.Edge(parent_label, cur_label, color="blue"))
 
     def split(self, data, response, num_predictors):
         
@@ -148,14 +160,18 @@ class node:
             rightNode = node(parent=self)
             rightNode.fit(rightData, rightResponse, num_predictors, stop_number)
             self.right = rightNode
+            self.addToGraph(rightNode.label, self.label)
         if len(leftData) > stop_number:
             leftNode = node(parent=self)
             leftNode.fit(leftData, leftResponse, num_predictors, stop_number)
             self.left = leftNode
+            self.addToGraph(leftNode.label, self.label)
 
 dat = carseats.loc[:, "CompPrice":"US"]
-resp = carseats.loc[:, "Sales"]   
+resp = carseats.loc[:, "Sales"]  
+tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white") 
 mytree = node()
 mytree.fit(dat, resp, 10, 10)
+tree_graph.write_png("Regression_Tree.png")
 print("hi")
         
