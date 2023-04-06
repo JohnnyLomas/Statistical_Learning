@@ -187,3 +187,16 @@ def accuracy(y_true, y_pred):
             correct += 1
     accuracy = correct / total
     return accuracy
+
+
+def predict(node, X):
+    y_pred = []
+    for _, instance in X.iterrows():
+        curr_node = node
+        while not curr_node.is_leaf:
+            if instance[curr_node.feature] <= curr_node.threshold:
+                curr_node = curr_node.left
+            else:
+                curr_node = curr_node.right
+        y_pred.append(curr_node.prediction)
+    return y_pred
