@@ -94,15 +94,12 @@ class node:
         else:
             return "Go Left" #TODO: Placeholder
     
-    def addToGraph(self, cur_label, parent_label, data_type=None, feature=None, split=None, data_num=None, terminal=False):
-        if terminal:
-            lab = str(split)
+    def addToGraph(self, cur_label, parent_label):
+        if ((self.data_type == int) | (self.data_type == float)):
+            lab = f"{self.desicionFeature} > {self.desicionSplit}"
         else:
-            if ((data_type == int) | (data_type == float)):
-                lab = f"{feature} > {split}"
-            else:
-                lab = f"{feature} in {split}"
-        tree_graph.add_node(pydot.Node(cur_label, shape="circle", label=lab))
+            lab = f"{self.desicionFeature} in {self.desicionSplit}"
+        tree_graph.add_node(pydot.Node(parent_label, shape="circle", label=lab))
         tree_graph.add_edge(pydot.Edge(parent_label, cur_label, color="blue"))
 
     def split(self, data, response, num_predictors):
@@ -163,34 +160,30 @@ class node:
             rightNode = node(parent=self)
             rightNode.fit(rightData, rightResponse, num_predictors, stop_number)
             self.right = rightNode
-            self.addToGraph(rightNode.label, self.label, data_type=rightNode.data_type, feature=rightNode.desicionFeature, split=rightNode.desicionSplit)
-        else:
-            rightNode = node(parent=self)
-            rightNode.prediction = rightResponse.mean()
-            self.addToGraph(rightNode.label, self.label, terminal=True, split = rightNode.prediction)
-
+            self.addToGraph(rightNode.label, self.label)
         if len(leftData) > stop_number:
             leftNode = node(parent=self)
             leftNode.fit(leftData, leftResponse, num_predictors, stop_number)
             self.left = leftNode
-            self.addToGraph(leftNode.label, self.label, data_type=leftNode.data_type, feature=leftNode.desicionFeature, split=leftNode.desicionSplit)
-        else:
-            leftNode = node(parent=self)
-            leftNode.prediction = leftResponse.mean()
-            self.addToGraph(leftNode.label, self.label, terminal=True, split = leftNode.prediction)
+            self.addToGraph(leftNode.label, self.label)
 
 dat = carseats.loc[:, "CompPrice":"US"]
 resp = carseats.loc[:, "Sales"]  
+tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white") 
 mytree = node()
-mytree.split(dat, resp, 10)
-if ((mytree.data_type == int) | (mytree.data_type == float)):
-    lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
-else:
-    lab = f"{mytree.desicionFeature} in {mytree.desicionSplit}"
-tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
-tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
-
 mytree.fit(dat, resp, 10, 10)
 tree_graph.write_png("Regression_Tree.png")
 print("hi")
         
+
+
+
+#Calculate the accuracy of the tree 
+def accuracy(y_true, y_pred):
+    correct = 0
+    total = len(y_true)
+    for i in range(total):
+        if y_true[i] == y_pred[i]:
+            correct += 1
+    accuracy = correct / total
+    return accuracy
