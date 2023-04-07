@@ -194,3 +194,12 @@ mytree.fit(dat, resp, 10, 10)
 tree_graph.write_png("Regression_Tree.png")
 print("hi")
         
+#Calculate the accuracy of the tree 
+def accuracy(y_true, y_pred):
+    correct = 0
+    total = len(y_true)
+    for i in range(total):
+        if y_true[i] == y_pred[i]:
+            correct += 1
+    accuracy = correct / total
+    return accuracy
