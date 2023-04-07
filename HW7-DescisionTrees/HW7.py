@@ -41,6 +41,7 @@ class node:
         self.data_type = None
         self.graph = graph
         self.label = str(uuid.uuid4())
+        self.prediction = None
 
     def bestSplitNumeric(self, data, response):
         quantiles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -84,24 +85,24 @@ class node:
 
     def numericalDesicion(self, data):
         if data[self.desicionFeature] > self.desicionSplit:
-            return "Go right" #TODO: Placeholder, not sure how to handle yet
+            return "right" #TODO: Placeholder, not sure how to handle yet
         else:
-            return "Go left" #TODO: Placeholder, not sure how to handle yet
+            return "left" #TODO: Placeholder, not sure how to handle yet
     
     def categoricalDesicion(self, data):
         if data[self.desicionFeature] in self.desicionSplit:
-            return "Go right" #TODO: Placeholder
+            return "right" #TODO: Placeholder
         else:
-            return "Go Left" #TODO: Placeholder
+            return "left" #TODO: Placeholder
     
-    def addToGraph(self, cur_label, parent_label, data_type=None, feature=None, split=None, data_num=None, terminal=False):
+    def addToGraph(self, cur_label, parent_label, data_type=None, feature=None, split=None, data_num=None, terminal=False, name=""):
         if terminal:
-            lab = str(split)
+            lab = f"{str(split)}\n{name}"
         else:
             if ((data_type == int) | (data_type == float)):
-                lab = f"{feature} > {split}"
+                lab = f"{feature} > {split}\n{name}"
             else:
-                lab = f"{feature} in {split}"
+                lab = f"{feature} in {split}\n{name}"
         tree_graph.add_node(pydot.Node(cur_label, shape="circle", label=lab))
         tree_graph.add_edge(pydot.Edge(parent_label, cur_label, color="blue"))
 
@@ -140,13 +141,13 @@ class node:
         self.desicionSplit = feature_split
         self.data_type = features[feature_min]
         if ((features[feature_min] == float) | (features[feature_min] == int)):
-            self.decision = classmethod(self.numericalDesicion)
+            self.decision = self.numericalDesicion
             rightData = data.loc[data[feature_min] > feature_split].reset_index(drop=True)
             rightResponse = response.loc[data[feature_min] > feature_split].reset_index(drop=True)
             leftData = data.loc[data[feature_min] <= feature_split].reset_index(drop=True)
             leftResponse = response.loc[data[feature_min] <= feature_split].reset_index(drop=True)
         else:
-            self.decision = classmethod(self.categoricalDesicion)
+            self.decision = self.categoricalDesicion
             rightData = data.loc[[data.loc[i, feature_min] in feature_split for i in range(len(data))]].reset_index(drop=True)
             rightResponse = response.loc[[data.loc[i, feature_min] in feature_split for i in range(len(data))]].reset_index(drop=True)
             leftData = data.loc[[data.loc[i, feature_min] not in feature_split for i in range(len(data))]].reset_index(drop=True)
@@ -163,25 +164,43 @@ class node:
             rightNode = node(parent=self)
             rightNode.fit(rightData, rightResponse, num_predictors, stop_number)
             self.right = rightNode
-            self.addToGraph(rightNode.label, self.label, data_type=rightNode.data_type, feature=rightNode.desicionFeature, split=rightNode.desicionSplit)
+            self.addToGraph(rightNode.label, self.label, data_type=rightNode.data_type, feature=rightNode.desicionFeature, split=rightNode.desicionSplit, name=rightNode.label)
         else:
             rightNode = node(parent=self)
             rightNode.prediction = rightResponse.mean()
+            self.right = rightNode
             self.addToGraph(rightNode.label, self.label, terminal=True, split = rightNode.prediction)
 
         if len(leftData) > stop_number:
             leftNode = node(parent=self)
             leftNode.fit(leftData, leftResponse, num_predictors, stop_number)
             self.left = leftNode
-            self.addToGraph(leftNode.label, self.label, data_type=leftNode.data_type, feature=leftNode.desicionFeature, split=leftNode.desicionSplit)
+            self.addToGraph(leftNode.label, self.label, data_type=leftNode.data_type, feature=leftNode.desicionFeature, split=leftNode.desicionSplit, name=leftNode.label)
         else:
             leftNode = node(parent=self)
             leftNode.prediction = leftResponse.mean()
+            self.left = leftNode
             self.addToGraph(leftNode.label, self.label, terminal=True, split = leftNode.prediction)
+    
+    # Predict a single data point
+    def predict(self, data):
+        if self.prediction != None:
+            return self.prediction
+        
+        direction = self.decision(data)
+        if direction == "right":
+            return self.right.predict(data)
+        else:
+            return self.left.predict(data)
 
+# Get data and response
 dat = carseats.loc[:, "CompPrice":"US"]
 resp = carseats.loc[:, "Sales"]  
+
+# Initialize the tree
 mytree = node()
+
+# Initialize the tree visualization
 mytree.split(dat, resp, 10)
 if ((mytree.data_type == int) | (mytree.data_type == float)):
     lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
@@ -190,7 +209,11 @@ else:
 tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
 tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
 
+# Fit the tree to the data using all predictors
 mytree.fit(dat, resp, 10, 10)
+
+
+mytree.predict(dat.iloc[0, :])
 tree_graph.write_png("Regression_Tree.png")
 print("hi")
         
