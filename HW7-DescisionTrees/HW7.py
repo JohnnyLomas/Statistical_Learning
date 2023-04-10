@@ -5,31 +5,9 @@ import random
 import itertools
 import pydot
 import uuid
+import copy
 
-
-# Import Data 
-data_pathname = "carseats.tsv"
-
-carseats = pd.read_csv(data_pathname, sep ='\t')
-carseats = carseats.sample(frac=1) # randomize the data 
-
-#Data Split into 10 Subsets 
-sets = []
-for i in range(1, 11):
-    sets += [i] * 40
-
-carseats["sets"] = sets  
-
-# Need Training and test 
-
-
-#response = carseats.loc[:,"Sales"]
-#data = carseats.loc[:, "CompPrice":]
-
-#carseats =(carseats-carseatsmean())/carseats.std() # THis will normalize the data should we need to 
-
-# Set up 10fold cross-validation 
-
+######################################################################################
 
 class node:
     def __init__(self, parent = None, left = None, right = None, graph = None):
@@ -41,6 +19,8 @@ class node:
         self.data_type = None
         self.graph = graph
         self.label = str(uuid.uuid4())
+        self.prediction = None
+        self.cost_complexity = 0
 
     def bestSplitNumeric(self, data, response):
         quantiles = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -84,26 +64,31 @@ class node:
 
     def numericalDesicion(self, data):
         if data[self.desicionFeature] > self.desicionSplit:
-            return "Go right" #TODO: Placeholder, not sure how to handle yet
+            return "right" #TODO: Placeholder, not sure how to handle yet
         else:
-            return "Go left" #TODO: Placeholder, not sure how to handle yet
+            return "left" #TODO: Placeholder, not sure how to handle yet
     
     def categoricalDesicion(self, data):
         if data[self.desicionFeature] in self.desicionSplit:
-            return "Go right" #TODO: Placeholder
+            return "right" #TODO: Placeholder
         else:
-            return "Go Left" #TODO: Placeholder
+            return "left" #TODO: Placeholder
     
-    def addToGraph(self, cur_label, parent_label):
-        if ((self.data_type == int) | (self.data_type == float)):
-            lab = f"{self.desicionFeature} > {self.desicionSplit}"
+    def addToGraph(self, cur_label, parent_label, data_type=None, feature=None, split=None, data_num=None, terminal=False, name=""):
+        if terminal:
+            lab = f"{str(split)}\n{name}"
         else:
-            lab = f"{self.desicionFeature} in {self.desicionSplit}"
-        tree_graph.add_node(pydot.Node(parent_label, shape="circle", label=lab))
+            if ((data_type == int) | (data_type == float)):
+                lab = f"{feature} > {split}\n{name}"
+            else:
+                lab = f"{feature} in {split}\n{name}"
+        tree_graph.add_node(pydot.Node(cur_label, shape="circle", label=lab))
         tree_graph.add_edge(pydot.Edge(parent_label, cur_label, color="blue"))
 
     def split(self, data, response, num_predictors):
         
+        self.avgResponse = response.mean()
+
         feature_rss_min = np.inf
         feature_min = None
         feature_split = None
@@ -137,47 +122,260 @@ class node:
         self.desicionSplit = feature_split
         self.data_type = features[feature_min]
         if ((features[feature_min] == float) | (features[feature_min] == int)):
-            self.decision = classmethod(self.numericalDesicion)
+            self.decision = self.numericalDesicion
             rightData = data.loc[data[feature_min] > feature_split].reset_index(drop=True)
             rightResponse = response.loc[data[feature_min] > feature_split].reset_index(drop=True)
             leftData = data.loc[data[feature_min] <= feature_split].reset_index(drop=True)
             leftResponse = response.loc[data[feature_min] <= feature_split].reset_index(drop=True)
         else:
-            self.decision = classmethod(self.categoricalDesicion)
+            self.decision = self.categoricalDesicion
             rightData = data.loc[[data.loc[i, feature_min] in feature_split for i in range(len(data))]].reset_index(drop=True)
             rightResponse = response.loc[[data.loc[i, feature_min] in feature_split for i in range(len(data))]].reset_index(drop=True)
             leftData = data.loc[[data.loc[i, feature_min] not in feature_split for i in range(len(data))]].reset_index(drop=True)
             leftResponse = response.loc[[data.loc[i, feature_min] not in feature_split for i in range(len(data))]].reset_index(drop=True)
         
+        self.cost_complexity = sum((rightResponse-rightResponse.mean())**2) + sum((leftResponse-leftResponse.mean())**2)
+
         return rightData, rightResponse, leftData, leftResponse
     
     # Recursively grow the tree
-    def fit(self, data, response, num_predictors, stop_number): 
+    def fit(self, data, response, num_predictors, stop_number, graph=False): 
         
         rightData,rightResponse,leftData,leftResponse = self.split(data, response, num_predictors)
         
-        if len(rightData) > stop_number:
-            rightNode = node(parent=self)
-            rightNode.fit(rightData, rightResponse, num_predictors, stop_number)
-            self.right = rightNode
-            self.addToGraph(rightNode.label, self.label)
-        if len(leftData) > stop_number:
-            leftNode = node(parent=self)
-            leftNode.fit(leftData, leftResponse, num_predictors, stop_number)
-            self.left = leftNode
-            self.addToGraph(leftNode.label, self.label)
+        rightNode = node(parent=self)
+        leftNode = node(parent=self)
 
+        if len(rightData) > stop_number:
+            rightNode.fit(rightData, rightResponse, num_predictors, stop_number, graph)
+            if graph:
+                self.addToGraph(rightNode.label, self.label, data_type=rightNode.data_type, feature=rightNode.desicionFeature, split=rightNode.desicionSplit, name=rightNode.label)
+        else:
+            rightNode.prediction = rightResponse.mean()
+            rightNode.cost_complexity = sum((rightResponse-rightResponse.mean())**2)
+            if graph:
+                self.addToGraph(rightNode.label, self.label, terminal=True, split = rightNode.prediction)
+
+        if len(leftData) > stop_number:
+            leftNode.fit(leftData, leftResponse, num_predictors, stop_number, graph)
+            if graph:
+                self.addToGraph(leftNode.label, self.label, data_type=leftNode.data_type, feature=leftNode.desicionFeature, split=leftNode.desicionSplit, name=leftNode.label)
+        else:
+            leftNode.prediction = leftResponse.mean()
+            rightNode.cost_complexity = sum((leftResponse-leftResponse.mean())**2)
+            if graph:
+                self.addToGraph(leftNode.label, self.label, terminal=True, split = leftNode.prediction)
+        
+        self.right = rightNode
+        self.left = leftNode
+
+    # Predict a single data point
+    def predict(self, data):
+        if self.prediction != None:
+            return self.prediction
+        
+        direction = self.decision(data)
+        if direction == "right":
+            return self.right.predict(data)
+        else:
+            return self.left.predict(data)
+    
+    # Traverses the tree and builds a dictionary of paths
+    # to candidate pruning nodes. i.e. {complexity_change:["left", "right",...]}
+    def findPruningNodes(self, paths_dict, path):
+        if self.right.data_type != None:
+            newpath = path + ["right"]
+            paths_dict = self.right.findPruningNodes(paths_dict, newpath)
+        if self.left.data_type != None:
+            newpath = path + ["left"]
+            paths_dict = self.left.findPruningNodes(paths_dict, newpath)
+        
+        if (self.left.data_type == None) and (self.right.data_type == None):
+            paths_dict[(self.parent.cost_complexity - self.cost_complexity)] = path
+            
+        return paths_dict
+    
+    def pruneSmallestChange(self, path):
+        #candidate_nodes = self.findPruningNodes({}, [])
+        #path_to_prune = candidate_nodes[min(candidate_nodes.keys())]
+        if path != []:
+            direction = path.pop(0)
+            if direction == "right":
+                self.right.pruneSmallestChange(path)
+            else:
+                self.left.pruneSmallestChange(path)
+        else:
+            self.right = None
+            self.left = None
+            self.data_type = None
+            self.prediction = self.avgResponse
+    
+    def precalc_costComplexity(self):
+        if self.right.prediction != None:
+            rightCount,rightCC = 1, self.right.cost_complexity
+        else:
+            rightCount,rightCC = self.right.precalc_costComplexity()
+        
+        if self.left.prediction != None:
+            leftCount, leftCC = 1, self.left.cost_complexity
+        else:
+            leftCount, leftCC = self.left.precalc_costComplexity()
+        
+        return (leftCount + rightCount), (leftCC + rightCC)
+
+###################################################################################
+
+def pruneTrees(tree: node):
+    # Stops with a three terminal node tree?
+    
+    tree.terminal_nodes, tree.totalCostComplexity = tree.precalc_costComplexity()
+    pruned_trees = [tree]
+    next_tree = copy.deepcopy(tree)
+    while (next_tree.left.data_type != None) | (next_tree.left.data_type != None):
+        candidate_nodes = next_tree.findPruningNodes({}, [])
+        path_to_prune = candidate_nodes[min(candidate_nodes.keys())]
+        next_tree.pruneSmallestChange(path_to_prune)
+        next_tree.terminal_nodes, next_tree.totalCostComplexity = next_tree.precalc_costComplexity()
+        pruned_trees.append(copy.deepcopy(next_tree))
+    return pruned_trees
+
+def getTreeByAlpha(trees: list, alpha: list):
+    cost_complexity = []
+    for tree in trees:
+        cost_complexity.append(tree.totalCostComplexity + alpha*tree.terminal_nodes)
+
+    min_cost_complexity = trees[cost_complexity.index(min(cost_complexity))]
+
+    return min_cost_complexity
+
+def fitBestTree(data, response, alpha):
+    tree = node()                           # Initialize tree
+    tree.fit(data, response, 10, 10)        # Fit tree
+    pruned = pruneTrees(tree)               # Prune tree to produce sequence
+    bestTree = getTreeByAlpha(pruned, alpha)# Get the minimum cost complexity tree by alpha value
+    return bestTree
+
+def calcMSE(data, response, tree):
+    squared_errors = []
+    for i in range(len(data)):
+        squared_errors.append((tree.predict(data.iloc[i,:]) - response.iloc[i])**2)
+    mse = sum(squared_errors)
+    return mse
+
+# Returns the average test MSE from 10-fold cross validation
+# associated with a list of alpha values (list)
+def crossValidatePrunedTrees(data, response, alphas):
+    # Data must be pre-randomized and have 'sets'
+    # Response must also have 'sets'
+    mean_mse = []
+    for alpha in alphas:
+        mse = []
+        for set in range(1,11):
+            # Get training and test subsets
+            train_dat = data.loc[data["sets"] != set, data.columns != "sets"].reset_index(drop=True)
+            train_resp = response.loc[response["sets"] != set, response.columns != "sets"].reset_index(drop=True).squeeze()
+            test_dat = data.loc[data["sets"] == set, data.columns != "sets"].reset_index(drop=True)
+            test_resp = response.loc[response["sets"] == set, response.columns != "sets"].reset_index(drop=True).squeeze()
+
+            # Get best try by alpha value
+            bestTree = fitBestTree(train_dat, train_resp, alpha)
+
+            # Compute test MSE for this subset and alpha
+            _mse = calcMSE(test_dat, test_resp, bestTree)
+            mse.append(_mse)
+        
+        mean_mse.append(np.array(mse).mean())
+    
+    return mean_mse
+
+########################################################################################
+
+# Exercise 1a - Split data into training and test set
+carseats = pd.read_csv("carseats.tsv", sep ='\t')
+carseats = carseats.sample(frac=1, random_state=123)
+train_dat = carseats.loc[0:350, "CompPrice":"US"].reset_index(drop=True)
+train_resp = carseats.loc[0:350, "Sales"].reset_index(drop=True)
+test_dat = carseats.loc[351:, "CompPrice":"US"].reset_index(drop=True)
+test_resp =  carseats.loc[351:, "Sales"].reset_index(drop=True)
+
+# Exercise 1b - Fit the tree. Analyze test performance
+## Initialize tree
+mytree = node()
+
+## Initialize visualization
+mytree.split(train_dat, train_resp, 10)
+if ((mytree.data_type == int) | (mytree.data_type == float)):
+    lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
+else:
+    lab = f"{mytree.desicionFeature} in {mytree.desicionSplit}"
+tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
+tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
+
+## Fit tree, calculate mse, and save graph
+mytree.fit(train_dat, train_resp, 10, 10, graph=True)
+mse = calcMSE(test_dat, test_resp, mytree)
+tree_graph.write_png("Regression_Tree.png")
+
+# Excercise 1c - Prune with cross validation and compare
+
+# Data Split into 10 Subsets and get features and responses 
+sets = []
+for i in range(1, 11):
+    sets += [i] * 40
+carseats["sets"] = sets
+data = carseats.loc[:, "CompPrice":"sets"]
+response = carseats.loc[:, ("Sales", "sets")]
+
+# Find the optimal level of complexity by pruning and 10-fold CV
+alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.2, 2]
+mse = crossValidatePrunedTrees(data, response, alphas)
+bestAlpha = alphas[mse.index(min(mse))]
+
+# Use the best alpha to train, prune, and test performance
+pruned_tree = fitBestTree(train_dat, train_resp, bestAlpha)
+best_mse = calcMSE(test_dat, test_resp, pruned_tree)
+print(best_mse)
+
+# Exercise 1d - Bagging
+# Bootstrap data -sample with replacment 100 sets?
+    # [list of dataframes] 
+# Grow 100 trees no pruning on each dataset
+    # intiatilze a tree: tree = node()
+    # Fit to data tree.fit(data, response, 10, 10)
+    # Store the trees in a list [] - mylist = [], for loop, mylist.append(element)
+# Predict on 100 trees and average response
+    # tree.predict(data)
+
+# Exercise 1e -
+
+
+
+
+
+# Get data and response
 dat = carseats.loc[:, "CompPrice":"US"]
 resp = carseats.loc[:, "Sales"]  
-tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white") 
+
+# Initialize the tree
 mytree = node()
+
+# Initialize the tree visualization
+mytree.split(dat, resp, 10)
+if ((mytree.data_type == int) | (mytree.data_type == float)):
+    lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
+else:
+    lab = f"{mytree.desicionFeature} in {mytree.desicionSplit}"
+tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
+tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
+
+# Fit the tree to the data using all predictors
 mytree.fit(dat, resp, 10, 10)
+
+findnodes = mytree.findPruningNodes({}, [])
+mytree.predict(dat.iloc[0, :])
 tree_graph.write_png("Regression_Tree.png")
 print("hi")
         
-
-
-
 #Calculate the accuracy of the tree 
 def accuracy(y_true, y_pred):
     correct = 0
@@ -187,16 +385,3 @@ def accuracy(y_true, y_pred):
             correct += 1
     accuracy = correct / total
     return accuracy
-
-
-def predict(node, X):
-    y_pred = []
-    for _, instance in X.iterrows():
-        curr_node = node
-        while not curr_node.is_leaf:
-            if instance[curr_node.feature] <= curr_node.threshold:
-                curr_node = curr_node.left
-            else:
-                curr_node = curr_node.right
-        y_pred.append(curr_node.prediction)
-    return y_pred
