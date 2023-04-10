@@ -110,7 +110,6 @@ class node:
             else:
                 rss_min,split_min = self.bestSplitCategorical(data[feat], response)
 
-
             if rss_min < feature_rss_min:
                 feature_rss_min = rss_min
                 feature_split = split_min
@@ -135,6 +134,7 @@ class node:
             leftResponse = response.loc[[data.loc[i, feature_min] not in feature_split for i in range(len(data))]].reset_index(drop=True)
         
         self.cost_complexity = sum((rightResponse-rightResponse.mean())**2) + sum((leftResponse-leftResponse.mean())**2)
+        self.rss_decrease = 2*sum((response-response.mean())**2) - self.cost_complexity
 
         return rightData, rightResponse, leftData, leftResponse
     
@@ -195,6 +195,7 @@ class node:
             
         return paths_dict
     
+    # Prunes a node given a path from the root (i.e ["right", "left", ...])
     def pruneSmallestChange(self, path):
         #candidate_nodes = self.findPruningNodes({}, [])
         #path_to_prune = candidate_nodes[min(candidate_nodes.keys())]
@@ -210,6 +211,8 @@ class node:
             self.data_type = None
             self.prediction = self.avgResponse
     
+    # Performs precalculations for tree pruning, including
+    # counting terminal nodes and summing up the cost complexity
     def precalc_costComplexity(self):
         if self.right.prediction != None:
             rightCount,rightCC = 1, self.right.cost_complexity
@@ -222,6 +225,23 @@ class node:
             leftCount, leftCC = self.left.precalc_costComplexity()
         
         return (leftCount + rightCount), (leftCC + rightCC)
+    
+    # Computes the total feature-wise decrease in rss for 
+    # variable importance calculations
+    def totalRSSDecrease(self, rss_decrease_dict):
+        if self.desicionFeature in rss_decrease_dict.keys():
+                rss_decrease_dict[self.desicionFeature] += self.rss_decrease
+        else: 
+            rss_decrease_dict[self.desicionFeature] = self.rss_decrease
+        
+        if self.right.prediction == None:
+            rss_decrease_dict = self.right.totalRSSDecrease(rss_decrease_dict)
+        
+        if self.left.prediction == None:
+            rss_decrease_dict = self.left.totalRSSDecrease(rss_decrease_dict)
+
+        return rss_decrease_dict
+
 
 ###################################################################################
 
@@ -313,6 +333,7 @@ tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
 
 ## Fit tree, calculate mse, and save graph
 mytree.fit(train_dat, train_resp, 10, 10, graph=True)
+dict = mytree.totalRSSDecrease({})
 mse = calcMSE(test_dat, test_resp, mytree)
 tree_graph.write_png("Regression_Tree.png")
 
