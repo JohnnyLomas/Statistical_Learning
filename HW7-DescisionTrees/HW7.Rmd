@@ -24,6 +24,6 @@ library("ISLR")
 ```{r}
 head(Carseats)
 
-write.csv(Carseats, file = "carseats.csv", sep = "\t", col.names = TRUE, row.names = FALSE)
+write.table(Carseats, file = "carseats.csv", sep = "\t", col.names = TRUE, row.names = FALSE, fileEncoding = "")
 
 ```

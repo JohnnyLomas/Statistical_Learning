@@ -312,29 +312,29 @@ tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="whi
 tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
 
 ## Fit tree, calculate mse, and save graph
-mytree.fit(train_dat, train_resp, 10, 10, graph=True)
-mse = calcMSE(test_dat, test_resp, mytree)
-tree_graph.write_png("Regression_Tree.png")
+#mytree.fit(train_dat, train_resp, 10, 10, graph=True)
+#mse = calcMSE(test_dat, test_resp, mytree)
+#tree_graph.write_png("Regression_Tree.png")
 
 # Excercise 1c - Prune with cross validation and compare
 
 # Data Split into 10 Subsets and get features and responses 
-sets = []
-for i in range(1, 11):
-    sets += [i] * 40
-carseats["sets"] = sets
-data = carseats.loc[:, "CompPrice":"sets"]
-response = carseats.loc[:, ("Sales", "sets")]
+#sets = []
+#for i in range(1, 11):
+#    sets += [i] * 40
+#carseats["sets"] = sets
+#data = carseats.loc[:, "CompPrice":"sets"]
+#response = carseats.loc[:, ("Sales", "sets")]
 
 # Find the optimal level of complexity by pruning and 10-fold CV
-alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.2, 2]
-mse = crossValidatePrunedTrees(data, response, alphas)
-bestAlpha = alphas[mse.index(min(mse))]
+#alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.2, 2]
+#mse = crossValidatePrunedTrees(data, response, alphas)
+#bestAlpha = alphas[mse.index(min(mse))]
 
 # Use the best alpha to train, prune, and test performance
-pruned_tree = fitBestTree(train_dat, train_resp, bestAlpha)
-best_mse = calcMSE(test_dat, test_resp, pruned_tree)
-print(best_mse)
+#pruned_tree = fitBestTree(train_dat, train_resp, bestAlpha)
+#best_mse = calcMSE(test_dat, test_resp, pruned_tree)
+#print(best_mse)
 
 # Exercise 1d - Bagging
 # Bootstrap data -sample with replacment 100 sets?
@@ -345,6 +345,49 @@ print(best_mse)
     # Store the trees in a list [] - mylist = [], for loop, mylist.append(element)
 # Predict on 100 trees and average response
     # tree.predict(data)
+
+
+# Number of trees
+n_trees = 100
+
+# Initialize list of trees
+tree_list = []
+
+# Bagging loop
+for i in range(n_trees):
+    # Bootstrap data
+    X_boot = train_dat.sample(n=len(train_dat), replace=True) 
+    y_boot = train_resp.loc[X_boot.index].reset_index(drop=True) # What did you call the data in the end? X, y?
+    X_boot = X_boot.reset_index(drop=True)
+
+    # Grow decision tree
+    tree = node()
+    tree.fit(X_boot, y_boot, 10, 10)
+
+    # Add tree to list
+    tree_list.append(tree)
+
+# Predict on test data and average response
+X_test = test_dat# what did you call the test data in the end?
+y_pred = test_resp
+
+
+
+y_pred_total = []
+for i in range(len(test_dat)):
+    for tree in tree_list:
+        y_pred += tree.predict(test_dat.iloc[i,:])
+    y_pred_total.append(y_pred/n_trees)
+
+
+
+
+mse = sum(y_pred)
+return mse
+
+print(y_pred)
+
+# EDIT mse = calcMSE(test_dat, test_resp, mytree)
 
 # Exercise 1e -
 
