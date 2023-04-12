@@ -6,6 +6,8 @@ import itertools
 import pydot
 import uuid
 import copy
+import pprint
+import pickle
 
 ######################################################################################
 
@@ -320,22 +322,22 @@ test_resp =  carseats.loc[351:, "Sales"].reset_index(drop=True)
 
 # Exercise 1b - Fit the tree. Analyze test performance
 ## Initialize tree
-mytree = node()
+#mytree = node()
 
 ## Initialize visualization
-mytree.split(train_dat, train_resp, 10)
-if ((mytree.data_type == int) | (mytree.data_type == float)):
-    lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
-else:
-    lab = f"{mytree.desicionFeature} in {mytree.desicionSplit}"
-tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
-tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
+#mytree.split(train_dat, train_resp, 10)
+#if ((mytree.data_type == int) | (mytree.data_type == float)):
+#    lab = f"{mytree.desicionFeature} > {mytree.desicionSplit}"
+#else:
+#    lab = f"{mytree.desicionFeature} in {mytree.desicionSplit}"
+#tree_graph = pydot.Dot("Sales Regression Tree", graph_type="graph", bgcolor="white")
+#tree_graph.add_node(pydot.Node(mytree.label, shape="circle", label=lab))
 
 ## Fit tree, calculate mse, and save graph
-mytree.fit(train_dat, train_resp, 10, 10, graph=True)
-dict = mytree.totalRSSDecrease({})
-mse = calcMSE(test_dat, test_resp, mytree)
-tree_graph.write_png("Regression_Tree.png")
+#mytree.fit(train_dat, train_resp, 10, 10, graph=True)
+#dict = mytree.totalRSSDecrease({})
+#mse = calcMSE(test_dat, test_resp, mytree)
+#tree_graph.write_png("Regression_Tree.png")
 
 # Excercise 1c - Prune with cross validation and compare
 
@@ -403,12 +405,26 @@ for i in range(len(test_dat)):
 
 
 
-mse = sum(y_pred)
-return mse
+#mse = sum(y_pred)
+#return mse
 
-print(y_pred)
+#print(y_pred)
 
 # EDIT mse = calcMSE(test_dat, test_resp, mytree)
+
+# Compute variable importance
+bagged_rss_decrease = [tree.totalRSSDecrease({}) for tree in tree_list]
+features = bagged_rss_decrease[0].keys()
+variable_imp = {}
+for feat in features:
+    rss_decreases = [tree[feat] for tree in bagged_rss_decrease]
+    variable_imp[feat] = sum(rss_decreases)
+
+
+max_feat = list(variable_imp.keys())[list(variable_imp.values()).index(max([variable_imp.values()]))]
+variable_imp = {feat: variable_imp[feat]/variable_imp[max_feat] for feat in set(variable_imp)}
+print("Variable importance for bagged desecion tree model:")
+pprint.pprint(variable_imp)
 
 # Exercise 1e -
 
