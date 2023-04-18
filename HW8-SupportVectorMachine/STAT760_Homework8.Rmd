@@ -1,0 +1,44 @@
+---
+title: "STAT 760 Homework 5"
+author: "Natalie Bladis and Johnathan Lomas"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+use_condaenv("base")
+```
+
+# Exercise 1. (Theoretical Question) – 3 pts
+Given a data set $(\overrightarrow{x}_1,y_1), . . . , (\overrightarrow{x}_N , y_N )$, with $y_i \in \bigl\{ −1, +1 \bigr\}$. For maximizing the margin problem, the constraints are $\overrightarrow{\omega}^T \overrightarrow{x_i} + \omega_0 \geq 1$ for $y_i = +1$ and $\overrightarrow{\omega}^T \overrightarrow{x_i} + \omega_0 \leq -1$ for $y_i = −1$. Restate the quadratic
+maximization problem when $\omega_0 = 1$. What are the constraints?
+
+## Solution:
+When $\omega_0 = 1$ the constraints become $\overrightarrow{\omega}^T \overrightarrow{x_i} \geq 0$ for $y_i = +1$ and $\overrightarrow{\omega}^T \overrightarrow{x_i} \leq 0$ for $y_i = −1$.
+
+The quadratic maximization problem then becomes
+
+\begin{aligned}
+L_p = \frac{1}{2} \overrightarrow{\omega}^T \overrightarrow{\omega} - \sum_{i=1}^{N} \alpha_i y_i (\overrightarrow{\omega}^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i
+\end{aligned}
+
+#Exercise 2. (Programming) – 12 pts
+Write a computer program to classify two classes in the dataset data.csv. Please fit Support Vector
+Machine via maximizing optimization problem with the constraints and ω0 = 1 stated in Exercise 1
+and use stochastic optimization. The binary dataset contains 20 observations, where 10 of them are in
+Class -1 and the other 10 observations are in Class +1. The dataset can be downloaded from https:
+//drive.google.com/file/d/1CxLTNEAopZPJXAd3wLgt6D5okmoHMMgb/view?usp=sharing.
+
+
+
+
+#Exercise 3. (Programming) – 15 pts
+The dataset data.csv contains 20 observations, where 10 of them are in Class -1 and the other 10
+observations are in Class +1, which can be downloaded from the link in Exercise 2. Apply Bootstrap on
+data.csv to compute 100 linear cuts between two classes by selecting bootstrap dataset with replacement.
+Then compute and plot the average cut.
+1
