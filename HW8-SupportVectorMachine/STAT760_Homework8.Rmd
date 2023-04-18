@@ -26,6 +26,8 @@ The quadratic maximization problem then becomes
 L_p = \frac{1}{2} \overrightarrow{\omega}^T \overrightarrow{\omega} - \sum_{i=1}^{N} \alpha_i y_i (\overrightarrow{\omega}^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i
 \end{aligned}
 
+Continue proof from class here with updated constraints. 
+
 #Exercise 2. (Programming) – 12 pts
 Write a computer program to classify two classes in the dataset data.csv. Please fit Support Vector
 Machine via maximizing optimization problem with the constraints and ω0 = 1 stated in Exercise 1
