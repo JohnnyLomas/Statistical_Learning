@@ -3,8 +3,8 @@ title: "STAT 760 Homework 5"
 author: "Natalie Bladis and Johnathan Lomas"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -26,9 +26,35 @@ The quadratic maximization problem then becomes
 L_p = \frac{1}{2} \overrightarrow{\omega}^T \overrightarrow{\omega} - \sum_{i=1}^{N} \alpha_i y_i (\overrightarrow{\omega}^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i
 \end{aligned}
 
-Continue proof from class here with updated constraints. 
+This is our function to be minimized. For an optum:
 
-#Exercise 2. (Programming) – 12 pts
+\begin{aligned}
+\frac{dL_p}{d\overrightarrow{w}} &= \frac{d}{d\overrightarrow{w}} [\frac{1}{2} \overrightarrow{\omega}^T \overrightarrow{\omega} - \sum_{i=1}^{N} \alpha_i y_i (\overrightarrow{\omega}^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i] \\
+&= \overrightarrow{w} - \sum_{i=1}^{N} \alpha_i y_i x_i
+\end{aligned}
+
+setting this equal to zero yields:
+\begin{aligned}
+\overrightarrow{w}= \sum_{i=1}^{N}a_i y_a x_i
+\end{aligned}
+
+and
+\begin{aligned}
+\frac{dL_p}{d w_0} &= \frac{d}{d w_0} [\frac{1}{2} \overrightarrow{\omega}^T \overrightarrow{\omega} - \sum_{i=1}^{N} \alpha_i y_i (\overrightarrow{\omega}^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i] \\
+&= 0
+\end{aligned}
+
+So the only constraint to the optimization problem when $w_0=1$ is $\overrightarrow{w}= \sum_{i=1}^{N} \alpha_i y_i x_i$. 
+
+Maximizing the duel problem $L_D$ by replacing $\overrightarrow{w} = \sum_{i=1}^{N} \alpha_i y_i x_i$ and $w_0 = 1$
+
+\begin{aligned}
+L_D &= \frac{1}{2} (\sum_{i=1}^{N} \alpha_i y_i x_i^T) (\sum_{i=1}^{N} \alpha_j y_j x_j^T) - \sum_{i=1}^{N} \alpha_i y_i (\sum_{i=1}^{N} \alpha_j y_j \overrightarrow{x}_j^T \overrightarrow{x_i} + 1) + \sum_{i=1}^N \alpha_i \\
+&= \sum_{i=1}^N \alpha_i - \frac{1}{2} \sum_{i=1}^{N} \alpha_i \alpha_j y_i y_j \overrightarrow{x}_i^T \overrightarrow{x_j} - \sum_{i=1}^N \alpha_i y_i
+\end{aligned}
+
+
+# Exercise 2. (Programming) – 12 pts
 Write a computer program to classify two classes in the dataset data.csv. Please fit Support Vector
 Machine via maximizing optimization problem with the constraints and ω0 = 1 stated in Exercise 1
 and use stochastic optimization. The binary dataset contains 20 observations, where 10 of them are in
@@ -38,9 +64,5 @@ Class -1 and the other 10 observations are in Class +1. The dataset can be downl
 
 
 
-#Exercise 3. (Programming) – 15 pts
-The dataset data.csv contains 20 observations, where 10 of them are in Class -1 and the other 10
-observations are in Class +1, which can be downloaded from the link in Exercise 2. Apply Bootstrap on
-data.csv to compute 100 linear cuts between two classes by selecting bootstrap dataset with replacement.
-Then compute and plot the average cut.
-1
+# Exercise 3. (Programming) – 15 pts
+The dataset data.csv contains 20 observations, where 10 of them are in Class -1 and the other 10 observations are in Class +1, which can be downloaded from the link in Exercise 2. Apply Bootstrap on data.csv to compute 100 linear cuts between two classes by selecting bootstrap dataset with replacement. Then compute and plot the average cut. 1
